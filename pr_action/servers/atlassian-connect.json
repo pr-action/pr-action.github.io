@@ -1,0 +1,33 @@
+{
+  "name": "KhulnaSoft PR-Action",
+  "description": "KhulnaSoft PR-Action",
+  "key": "app_key",
+  "vendor": {
+    "name": "KhulnaSoft",
+    "url": "https://khulnasoft.com"
+  },
+  "authentication": {
+    "type": "jwt"
+  },
+  "baseUrl": "base_url",
+  "lifecycle": {
+    "installed": "/installed",
+    "uninstalled": "/uninstalled"
+  },
+  "scopes": [
+    "account",
+    "repository",
+    "pullrequest"
+  ],
+  "contexts": [
+    "account"
+  ],
+  "modules": {
+    "webhooks": [
+      {
+        "event": "*",
+        "url": "/webhook"
+      }
+    ]
+  }
+}

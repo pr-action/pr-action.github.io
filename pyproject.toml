@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pr-action"
+version = "0.2.2"
+
+authors = [{name= "KhulnaSoft", email = "info@khulnasoft.com"}]
+
+maintainers = [
+  {name = "KhulnaSoft Bot", email = "admin@khulnasoft.com"},
+  {name = "Al Mamun", email = "iconmamundentist@gmail.com"},
+]
+
+description = "KhulnaSoft PR-Action aims to help efficiently review and handle pull requests, by providing AI feedbacks and suggestions."
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["AI", "Agents", "Pull Request", "Automation", "Code Review"]
+license = {name = "Apache 2.0", file = "LICENSE"}
+
+classifiers = [
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+]
+dynamic = ["dependencies"]
+
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[project.urls]
+"Homepage" = "https://github.com/KhulnaSoft/pr-action"
+"Documentation" = "https://pr-action-docs.khulnasoft.com/"
+
+[tool.setuptools]
+include-package-data = true
+license-files = ["LICENSE"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pr_action*"] # include pr_action and any sub-packages it finds under it.
+
+[project.scripts]
+pr-action = "pr_action.cli:run"
+
+
+[tool.ruff]
+
+line-length = 120
+
+select = [
+  "E",  # Pyflakes
+  "F",  # Pyflakes
+  "B",  # flake8-bugbear
+  "I001",  # isort basic checks
+  "I002",  # isort missing-required-import
+  ]
+
+# First commit - only fixing isort
+fixable = [
+  "I001",  # isort basic checks
+]
+
+unfixable = [
+  "B",  # Avoid trying to fix flake8-bugbear (`B`) violations.
+  ]
+
+exclude = [
+  "api/code_completions",
+]
+
+ignore = [
+  "E999", "B008"
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["E402"]  # Ignore `E402` (import violations) in all `__init__.py` files, and in `path/to/file.py`.
+# TODO: should decide if maybe not to ignore these.

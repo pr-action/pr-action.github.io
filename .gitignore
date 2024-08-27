@@ -1,0 +1,11 @@
+.idea/
+.lsp/
+.vscode/
+venv/
+pr_action/settings/.secrets.toml
+__pycache__
+dist/
+*.egg-info/
+build/
+.DS_Store
+docs/.cache/
