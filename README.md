@@ -28,7 +28,6 @@
 - [Example results](#example-results)
 - [Try it now](#try-it-now)
 - [PR-Action Pro 💎](#pr-action-pro-)
-- [How it works](#how-it-works)
 - [Why use PR-Action?](#why-use-pr-action)
 - [Data privacy](#data-privacy)
   - [Self-hosted PR-Action](#self-hosted-pr-action)
@@ -189,14 +188,6 @@ Note that when you set your own PR-Action or use KhulnaSoft hosted PR-Action, th
 See [here](https://khulnasoft.github.io/pr-action/#pr-action-pro) for a list of features available in PR-Action Pro.
 
 
-
-## How it works
-
-The following diagram illustrates PR-Action tools and their flow:
-
-![PR-Action Tools](https://khulnasoft.com/images/pr_action/diagram-v0.9.png)
-
-Check out the [PR Compression strategy](https://khulnasoft.github.io/pr-action/core-abilities/#pr-compression-strategy) page for more details on how we convert a code diff to a manageable LLM prompt
 
 ## Why use PR-Action?
 
