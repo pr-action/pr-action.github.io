@@ -14,8 +14,12 @@ from pr_action.log import get_logger
 
 
 class PRInformationFromUser:
-    def __init__(self, pr_url: str, args: list = None,
-                 ai_handler: partial[BaseAiHandler,] = LiteLLMAIHandler):
+    def __init__(
+        self,
+        pr_url: str,
+        args: list = None,
+        ai_handler: partial[BaseAiHandler,] = LiteLLMAIHandler,
+    ):
         self.git_provider = get_git_provider()(pr_url)
         self.main_pr_language = get_main_pr_language(
             self.git_provider.get_languages(), self.git_provider.get_files()
@@ -31,49 +35,63 @@ class PRInformationFromUser:
             "diff": "",  # empty diff for initial calculation
             "commit_messages_str": self.git_provider.get_commit_messages(),
         }
-        self.token_handler = TokenHandler(self.git_provider.pr,
-                                          self.vars,
-                                          get_settings().pr_information_from_user_prompt.system,
-                                          get_settings().pr_information_from_user_prompt.user)
+        self.token_handler = TokenHandler(
+            self.git_provider.pr,
+            self.vars,
+            get_settings().pr_information_from_user_prompt.system,
+            get_settings().pr_information_from_user_prompt.user,
+        )
         self.patches_diff = None
         self.prediction = None
 
     async def run(self):
-        get_logger().info('Generating question to the user...')
+        get_logger().info("Generating question to the user...")
         if get_settings().config.publish_output:
-            self.git_provider.publish_comment("Preparing questions...", is_temporary=True)
+            self.git_provider.publish_comment(
+                "Preparing questions...", is_temporary=True
+            )
         await retry_with_fallback_models(self._prepare_prediction)
-        get_logger().info('Preparing questions...')
+        get_logger().info("Preparing questions...")
         pr_comment = self._prepare_pr_answer()
         if get_settings().config.publish_output:
-            get_logger().info('Pushing questions...')
+            get_logger().info("Pushing questions...")
             self.git_provider.publish_comment(pr_comment)
             self.git_provider.remove_initial_comment()
         return ""
 
     async def _prepare_prediction(self, model):
-        get_logger().info('Getting PR diff...')
+        get_logger().info("Getting PR diff...")
         self.patches_diff = get_pr_diff(self.git_provider, self.token_handler, model)
-        get_logger().info('Getting AI prediction...')
+        get_logger().info("Getting AI prediction...")
         self.prediction = await self._get_prediction(model)
 
     async def _get_prediction(self, model: str):
         variables = copy.deepcopy(self.vars)
         variables["diff"] = self.patches_diff  # update diff
         environment = Environment(undefined=StrictUndefined)
-        system_prompt = environment.from_string(get_settings().pr_information_from_user_prompt.system).render(variables)
-        user_prompt = environment.from_string(get_settings().pr_information_from_user_prompt.user).render(variables)
+        system_prompt = environment.from_string(
+            get_settings().pr_information_from_user_prompt.system
+        ).render(variables)
+        user_prompt = environment.from_string(
+            get_settings().pr_information_from_user_prompt.user
+        ).render(variables)
         if get_settings().config.verbosity_level >= 2:
             get_logger().info(f"\nSystem prompt:\n{system_prompt}")
             get_logger().info(f"\nUser prompt:\n{user_prompt}")
         response, finish_reason = await self.ai_handler.chat_completion(
-            model=model, temperature=get_settings().config.temperature, system=system_prompt, user=user_prompt)
+            model=model,
+            temperature=get_settings().config.temperature,
+            system=system_prompt,
+            user=user_prompt,
+        )
         return response
 
     def _prepare_pr_answer(self) -> str:
         model_output = self.prediction.strip()
         if get_settings().config.verbosity_level >= 2:
             get_logger().info(f"answer_str:\n{model_output}")
-        answer_str = f"{model_output}\n\n Please respond to the questions above in the following format:\n\n" +\
-                     "\n>/answer\n>1) ...\n>2) ...\n>...\n"
+        answer_str = (
+            f"{model_output}\n\n Please respond to the questions above in the following format:\n\n"
+            + "\n>/answer\n>1) ...\n>2) ...\n>...\n"
+        )
         return answer_str

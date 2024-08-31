@@ -31,7 +31,9 @@ class CodeCommitPullRequestResponse:
 
         self.targets = []
         for target in json.get("pullRequestTargets", []):
-            self.targets.append(CodeCommitPullRequestResponse.CodeCommitPullRequestTarget(target))
+            self.targets.append(
+                CodeCommitPullRequestResponse.CodeCommitPullRequestTarget(target)
+            )
 
     class CodeCommitPullRequestTarget:
         """
@@ -65,7 +67,9 @@ class CodeCommitClient:
         except Exception as e:
             raise ValueError(f"Failed to connect to AWS CodeCommit: {e}") from e
 
-    def get_differences(self, repo_name: int, destination_commit: str, source_commit: str):
+    def get_differences(
+        self, repo_name: int, destination_commit: str, source_commit: str
+    ):
         """
         Get the differences between two commits in CodeCommit.
 
@@ -95,18 +99,26 @@ class CodeCommitClient:
             ):
                 differences.extend(page.get("differences", []))
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == 'RepositoryDoesNotExistException':
-                raise ValueError(f"CodeCommit cannot retrieve differences: Repository does not exist: {repo_name}") from e
-            raise ValueError(f"CodeCommit cannot retrieve differences for {source_commit}..{destination_commit}") from e
+            if e.response["Error"]["Code"] == "RepositoryDoesNotExistException":
+                raise ValueError(
+                    f"CodeCommit cannot retrieve differences: Repository does not exist: {repo_name}"
+                ) from e
+            raise ValueError(
+                f"CodeCommit cannot retrieve differences for {source_commit}..{destination_commit}"
+            ) from e
         except Exception as e:
-            raise ValueError(f"CodeCommit cannot retrieve differences for {source_commit}..{destination_commit}") from e
+            raise ValueError(
+                f"CodeCommit cannot retrieve differences for {source_commit}..{destination_commit}"
+            ) from e
 
         output = []
         for json in differences:
             output.append(CodeCommitDifferencesResponse(json))
         return output
 
-    def get_file(self, repo_name: str, file_path: str, sha_hash: str, optional: bool = False):
+    def get_file(
+        self, repo_name: str, file_path: str, sha_hash: str, optional: bool = False
+    ):
         """
         Retrieve a file from CodeCommit.
 
@@ -129,16 +141,24 @@ class CodeCommitClient:
             self._connect_boto_client()
 
         try:
-            response = self.boto_client.get_file(repositoryName=repo_name, commitSpecifier=sha_hash, filePath=file_path)
+            response = self.boto_client.get_file(
+                repositoryName=repo_name, commitSpecifier=sha_hash, filePath=file_path
+            )
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == 'RepositoryDoesNotExistException':
-                raise ValueError(f"CodeCommit cannot retrieve PR: Repository does not exist: {repo_name}") from e
+            if e.response["Error"]["Code"] == "RepositoryDoesNotExistException":
+                raise ValueError(
+                    f"CodeCommit cannot retrieve PR: Repository does not exist: {repo_name}"
+                ) from e
             # if the file does not exist, but is flagged as optional, then return an empty string
-            if optional and e.response["Error"]["Code"] == 'FileDoesNotExistException':
+            if optional and e.response["Error"]["Code"] == "FileDoesNotExistException":
                 return ""
-            raise ValueError(f"CodeCommit cannot retrieve file '{file_path}' from repository '{repo_name}'") from e
+            raise ValueError(
+                f"CodeCommit cannot retrieve file '{file_path}' from repository '{repo_name}'"
+            ) from e
         except Exception as e:
-            raise ValueError(f"CodeCommit cannot retrieve file '{file_path}' from repository '{repo_name}'") from e
+            raise ValueError(
+                f"CodeCommit cannot retrieve file '{file_path}' from repository '{repo_name}'"
+            ) from e
         if "fileContent" not in response:
             raise ValueError(f"File content is empty for file: {file_path}")
 
@@ -165,11 +185,17 @@ class CodeCommitClient:
         try:
             response = self.boto_client.get_pull_request(pullRequestId=str(pr_number))
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == 'PullRequestDoesNotExistException':
-                raise ValueError(f"CodeCommit cannot retrieve PR: PR number does not exist: {pr_number}") from e
-            if e.response["Error"]["Code"] == 'RepositoryDoesNotExistException':
-                raise ValueError(f"CodeCommit cannot retrieve PR: Repository does not exist: {repo_name}") from e
-            raise ValueError(f"CodeCommit cannot retrieve PR: {pr_number}: boto client error") from e
+            if e.response["Error"]["Code"] == "PullRequestDoesNotExistException":
+                raise ValueError(
+                    f"CodeCommit cannot retrieve PR: PR number does not exist: {pr_number}"
+                ) from e
+            if e.response["Error"]["Code"] == "RepositoryDoesNotExistException":
+                raise ValueError(
+                    f"CodeCommit cannot retrieve PR: Repository does not exist: {repo_name}"
+                ) from e
+            raise ValueError(
+                f"CodeCommit cannot retrieve PR: {pr_number}: boto client error"
+            ) from e
         except Exception as e:
             raise ValueError(f"CodeCommit cannot retrieve PR: {pr_number}") from e
 
@@ -200,22 +226,37 @@ class CodeCommitClient:
             self._connect_boto_client()
 
         try:
-            self.boto_client.update_pull_request_title(pullRequestId=str(pr_number), title=pr_title)
-            self.boto_client.update_pull_request_description(pullRequestId=str(pr_number), description=pr_body)
+            self.boto_client.update_pull_request_title(
+                pullRequestId=str(pr_number), title=pr_title
+            )
+            self.boto_client.update_pull_request_description(
+                pullRequestId=str(pr_number), description=pr_body
+            )
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == 'PullRequestDoesNotExistException':
+            if e.response["Error"]["Code"] == "PullRequestDoesNotExistException":
                 raise ValueError(f"PR number does not exist: {pr_number}") from e
-            if e.response["Error"]["Code"] == 'InvalidTitleException':
+            if e.response["Error"]["Code"] == "InvalidTitleException":
                 raise ValueError(f"Invalid title for PR number: {pr_number}") from e
-            if e.response["Error"]["Code"] == 'InvalidDescriptionException':
-                raise ValueError(f"Invalid description for PR number: {pr_number}") from e
-            if e.response["Error"]["Code"] == 'PullRequestAlreadyClosedException':
+            if e.response["Error"]["Code"] == "InvalidDescriptionException":
+                raise ValueError(
+                    f"Invalid description for PR number: {pr_number}"
+                ) from e
+            if e.response["Error"]["Code"] == "PullRequestAlreadyClosedException":
                 raise ValueError(f"PR is already closed: PR number: {pr_number}") from e
             raise ValueError(f"Boto3 client error calling publish_description") from e
         except Exception as e:
             raise ValueError(f"Error calling publish_description") from e
 
-    def publish_comment(self, repo_name: str, pr_number: int, destination_commit: str, source_commit: str, comment: str, annotation_file: str = None, annotation_line: int = None):
+    def publish_comment(
+        self,
+        repo_name: str,
+        pr_number: int,
+        destination_commit: str,
+        source_commit: str,
+        comment: str,
+        annotation_file: str = None,
+        annotation_line: int = None,
+    ):
         """
         Publish a comment to a pull request
 
@@ -268,10 +309,12 @@ class CodeCommitClient:
                     content=comment,
                 )
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == 'RepositoryDoesNotExistException':
+            if e.response["Error"]["Code"] == "RepositoryDoesNotExistException":
                 raise ValueError(f"Repository does not exist: {repo_name}") from e
-            if e.response["Error"]["Code"] == 'PullRequestDoesNotExistException':
+            if e.response["Error"]["Code"] == "PullRequestDoesNotExistException":
                 raise ValueError(f"PR number does not exist: {pr_number}") from e
-            raise ValueError(f"Boto3 client error calling post_comment_for_pull_request") from e
+            raise ValueError(
+                f"Boto3 client error calling post_comment_for_pull_request"
+            ) from e
         except Exception as e:
             raise ValueError(f"Error calling post_comment_for_pull_request") from e

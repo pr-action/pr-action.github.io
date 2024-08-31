@@ -3,11 +3,11 @@ import os
 import tempfile
 
 from dynaconf import Dynaconf
+from starlette_context import context
 
 from pr_action.config_loader import get_settings
 from pr_action.git_providers import get_git_provider, get_git_provider_with_context
 from pr_action.log import get_logger
-from starlette_context import context
 
 
 def apply_repo_settings(pr_url):
@@ -20,7 +20,9 @@ def apply_repo_settings(pr_url):
             except Exception:
                 repo_settings = None
                 pass
-            if repo_settings is None:  # None is different from "", which is a valid value
+            if (
+                repo_settings is None
+            ):  # None is different from "", which is a valid value
                 repo_settings = git_provider.get_repo_settings()
                 try:
                     context["repo_settings"] = repo_settings
@@ -29,11 +31,13 @@ def apply_repo_settings(pr_url):
 
             if repo_settings:
                 repo_settings_file = None
-                fd, repo_settings_file = tempfile.mkstemp(suffix='.toml')
+                fd, repo_settings_file = tempfile.mkstemp(suffix=".toml")
                 os.write(fd, repo_settings)
                 new_settings = Dynaconf(settings_files=[repo_settings_file])
                 for section, contents in new_settings.as_dict().items():
-                    section_dict = copy.deepcopy(get_settings().as_dict().get(section, {}))
+                    section_dict = copy.deepcopy(
+                        get_settings().as_dict().get(section, {})
+                    )
                     for key, value in contents.items():
                         section_dict[key] = value
                     get_settings().unset(section)
@@ -46,10 +50,13 @@ def apply_repo_settings(pr_url):
                 try:
                     os.remove(repo_settings_file)
                 except Exception as e:
-                    get_logger().error(f"Failed to remove temporary settings file {repo_settings_file}", e)
+                    get_logger().error(
+                        f"Failed to remove temporary settings file {repo_settings_file}",
+                        e,
+                    )
 
     # enable switching models with a short definition
-    if get_settings().config.model.lower()=='claude-3-5-sonnet':
+    if get_settings().config.model.lower() == "claude-3-5-sonnet":
         set_claude_model()
 
 
@@ -58,6 +65,6 @@ def set_claude_model():
     set the claude-sonnet-3.5 model easily (even by users), just by stating: --config.model='claude-3-5-sonnet'
     """
     model_claude = "bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0"
-    get_settings().set('config.model', model_claude)
-    get_settings().set('config.model_turbo', model_claude)
-    get_settings().set('config.fallback_models', [model_claude])
+    get_settings().set("config.model", model_claude)
+    get_settings().set("config.model_turbo", model_claude)
+    get_settings().set("config.fallback_models", [model_claude])

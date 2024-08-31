@@ -2,7 +2,7 @@ import hashlib
 import hmac
 import time
 from collections import defaultdict
-from typing import Callable, Any
+from typing import Any, Callable
 
 from fastapi import HTTPException
 
@@ -18,8 +18,12 @@ def verify_signature(payload_body, secret_token, signature_header):
         signature_header: header received from GitHub (x-hub-signature-256)
     """
     if not signature_header:
-        raise HTTPException(status_code=403, detail="x-hub-signature-256 header is missing!")
-    hash_object = hmac.new(secret_token.encode('utf-8'), msg=payload_body, digestmod=hashlib.sha256)
+        raise HTTPException(
+            status_code=403, detail="x-hub-signature-256 header is missing!"
+        )
+    hash_object = hmac.new(
+        secret_token.encode("utf-8"), msg=payload_body, digestmod=hashlib.sha256
+    )
     expected_signature = "sha256=" + hash_object.hexdigest()
     if not hmac.compare_digest(expected_signature, signature_header):
         raise HTTPException(status_code=403, detail="Request signatures didn't match!")
@@ -27,6 +31,7 @@ def verify_signature(payload_body, secret_token, signature_header):
 
 class RateLimitExceeded(Exception):
     """Raised when the git provider API rate limit has been exceeded."""
+
     pass
 
 
@@ -66,7 +71,11 @@ class DefaultDictWithTimeout(defaultdict):
         request_time = self.__time()
         if request_time - self.__last_refresh > self.__refresh_interval:
             return
-        to_delete = [key for key, key_time in self.__key_times.items() if request_time - key_time > self.__ttl]
+        to_delete = [
+            key
+            for key, key_time in self.__key_times.items()
+            if request_time - key_time > self.__ttl
+        ]
         for key in to_delete:
             del self[key]
         self.__last_refresh = request_time

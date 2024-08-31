@@ -4,13 +4,15 @@ from collections import Counter
 from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
-from pr_action.git_providers.codecommit_client import CodeCommitClient
+from pr_action.algo.language_handler import is_valid_file
 from pr_action.algo.types import EDIT_TYPE, FilePatchInfo
+from pr_action.git_providers.codecommit_client import CodeCommitClient
+
 from ..algo.utils import load_large_diff
-from .git_provider import GitProvider
 from ..config_loader import get_settings
 from ..log import get_logger
-from pr_action.algo.language_handler import is_valid_file
+from .git_provider import GitProvider
+
 
 class PullRequestCCMimic:
     """
@@ -53,7 +55,9 @@ class CodeCommitProvider(GitProvider):
     This class implements the GitProvider interface for AWS CodeCommit repositories.
     """
 
-    def __init__(self, pr_url: Optional[str] = None, incremental: Optional[bool] = False):
+    def __init__(
+        self, pr_url: Optional[str] = None, incremental: Optional[bool] = False
+    ):
         self.codecommit_client = CodeCommitClient()
         self.aws_client = None
         self.repo_name = None
@@ -74,7 +78,7 @@ class CodeCommitProvider(GitProvider):
             "create_inline_comment",
             "publish_inline_comments",
             "get_labels",
-            "gfm_markdown"
+            "gfm_markdown",
         ]:
             return False
         return True
@@ -89,13 +93,19 @@ class CodeCommitProvider(GitProvider):
             return self.git_files
 
         self.git_files = []
-        differences = self.codecommit_client.get_differences(self.repo_name, self.pr.destination_commit, self.pr.source_commit)
+        differences = self.codecommit_client.get_differences(
+            self.repo_name, self.pr.destination_commit, self.pr.source_commit
+        )
         for item in differences:
-            self.git_files.append(CodeCommitFile(item.before_blob_path,
-                                                 item.before_blob_id,
-                                                 item.after_blob_path,
-                                                 item.after_blob_id,
-                                                 CodeCommitProvider._get_edit_type(item.change_type)))
+            self.git_files.append(
+                CodeCommitFile(
+                    item.before_blob_path,
+                    item.before_blob_id,
+                    item.after_blob_path,
+                    item.after_blob_id,
+                    CodeCommitProvider._get_edit_type(item.change_type),
+                )
+            )
         return self.git_files
 
     def get_diff_files(self) -> list[FilePatchInfo]:
@@ -119,21 +129,28 @@ class CodeCommitProvider(GitProvider):
             if diff_item.a_blob_id is not None:
                 patch_filename = diff_item.a_path
                 original_file_content_str = self.codecommit_client.get_file(
-                    self.repo_name, diff_item.a_path, self.pr.destination_commit)
+                    self.repo_name, diff_item.a_path, self.pr.destination_commit
+                )
                 if isinstance(original_file_content_str, (bytes, bytearray)):
-                    original_file_content_str = original_file_content_str.decode("utf-8")
+                    original_file_content_str = original_file_content_str.decode(
+                        "utf-8"
+                    )
             else:
                 original_file_content_str = ""
 
             if diff_item.b_blob_id is not None:
                 patch_filename = diff_item.b_path
-                new_file_content_str = self.codecommit_client.get_file(self.repo_name, diff_item.b_path, self.pr.source_commit)
+                new_file_content_str = self.codecommit_client.get_file(
+                    self.repo_name, diff_item.b_path, self.pr.source_commit
+                )
                 if isinstance(new_file_content_str, (bytes, bytearray)):
                     new_file_content_str = new_file_content_str.decode("utf-8")
             else:
                 new_file_content_str = ""
 
-            patch = load_large_diff(patch_filename, new_file_content_str, original_file_content_str)
+            patch = load_large_diff(
+                patch_filename, new_file_content_str, original_file_content_str
+            )
 
             # Store the diffs as a list of FilePatchInfo objects
             info = FilePatchInfo(
@@ -142,9 +159,9 @@ class CodeCommitProvider(GitProvider):
                 patch,
                 diff_item.b_path,
                 edit_type=diff_item.edit_type,
-                old_filename=None
-                if diff_item.a_path == diff_item.b_path
-                else diff_item.a_path,
+                old_filename=(
+                    None if diff_item.a_path == diff_item.b_path else diff_item.a_path
+                ),
             )
             # Only add valid files to the diff list
             # "bad extensions" are set in the language_extensions.toml file
@@ -162,7 +179,9 @@ class CodeCommitProvider(GitProvider):
                 pr_body=CodeCommitProvider._add_additional_newlines(pr_body),
             )
         except Exception as e:
-            raise ValueError(f"CodeCommit Cannot publish description for PR: {self.pr_num}") from e    
+            raise ValueError(
+                f"CodeCommit Cannot publish description for PR: {self.pr_num}"
+            ) from e
 
     def publish_comment(self, pr_comment: str, is_temporary: bool = False):
         if is_temporary:
@@ -181,19 +200,28 @@ class CodeCommitProvider(GitProvider):
                 comment=pr_comment,
             )
         except Exception as e:
-            raise ValueError(f"CodeCommit Cannot publish comment for PR: {self.pr_num}") from e
+            raise ValueError(
+                f"CodeCommit Cannot publish comment for PR: {self.pr_num}"
+            ) from e
 
     def publish_code_suggestions(self, code_suggestions: list) -> bool:
         counter = 1
         for suggestion in code_suggestions:
             # Verify that each suggestion has the required keys
-            if not all(key in suggestion for key in ["body", "relevant_file", "relevant_lines_start"]):
-                get_logger().warning(f"Skipping code suggestion #{counter}: Each suggestion must have 'body', 'relevant_file', 'relevant_lines_start' keys")
+            if not all(
+                key in suggestion
+                for key in ["body", "relevant_file", "relevant_lines_start"]
+            ):
+                get_logger().warning(
+                    f"Skipping code suggestion #{counter}: Each suggestion must have 'body', 'relevant_file', 'relevant_lines_start' keys"
+                )
                 continue
-       
+
             # Publish the code suggestion to CodeCommit
             try:
-                get_logger().debug(f"Code Suggestion #{counter} in file: {suggestion['relevant_file']}: {suggestion['relevant_lines_start']}")
+                get_logger().debug(
+                    f"Code Suggestion #{counter} in file: {suggestion['relevant_file']}: {suggestion['relevant_lines_start']}"
+                )
                 self.codecommit_client.publish_comment(
                     repo_name=self.repo_name,
                     pr_number=self.pr_num,
@@ -204,13 +232,15 @@ class CodeCommitProvider(GitProvider):
                     annotation_line=suggestion["relevant_lines_start"],
                 )
             except Exception as e:
-                raise ValueError(f"CodeCommit Cannot publish code suggestions for PR: {self.pr_num}") from e
-            
+                raise ValueError(
+                    f"CodeCommit Cannot publish code suggestions for PR: {self.pr_num}"
+                ) from e
+
             counter += 1
 
         # The calling function passes in a list of code suggestions, and this function publishes each suggestion one at a time.
         # If we were to return False here, the calling function will attempt to publish the same list of code suggestions again, one at a time.
-        # Since this function publishes the suggestions one at a time anyway, we always return True here to avoid the retry.        
+        # Since this function publishes the suggestions one at a time anyway, we always return True here to avoid the retry.
         return True
 
     def publish_labels(self, labels):
@@ -225,12 +255,22 @@ class CodeCommitProvider(GitProvider):
     def remove_comment(self, comment):
         return ""  # not implemented yet
 
-    def publish_inline_comment(self, body: str, relevant_file: str, relevant_line_in_file: str, original_suggestion=None):
+    def publish_inline_comment(
+        self,
+        body: str,
+        relevant_file: str,
+        relevant_line_in_file: str,
+        original_suggestion=None,
+    ):
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/codecommit/client/post_comment_for_compared_commit.html
-        raise NotImplementedError("CodeCommit provider does not support publishing inline comments yet")
+        raise NotImplementedError(
+            "CodeCommit provider does not support publishing inline comments yet"
+        )
 
     def publish_inline_comments(self, comments: list[dict]):
-        raise NotImplementedError("CodeCommit provider does not support publishing inline comments yet")
+        raise NotImplementedError(
+            "CodeCommit provider does not support publishing inline comments yet"
+        )
 
     def get_title(self):
         return self.pr.title
@@ -238,7 +278,7 @@ class CodeCommitProvider(GitProvider):
     def get_pr_id(self):
         """
         Returns the PR ID in the format: "repo_name/pr_number".
-        Note: This is an internal identifier for PR-Action, 
+        Note: This is an internal identifier for PR-Action,
         and is not the same as the CodeCommit PR identifier.
         """
         try:
@@ -246,7 +286,7 @@ class CodeCommitProvider(GitProvider):
             return pr_id
         except:
             return ""
-        
+
     def get_languages(self):
         """
         Returns a dictionary of languages, containing the percentage of each language used in the PR.
@@ -255,7 +295,7 @@ class CodeCommitProvider(GitProvider):
         - dict: A dictionary where each key is a language name and the corresponding value is the percentage of that language in the PR.
         """
         commit_files = self.get_files()
-        filenames = [ item.filename for item in commit_files ]
+        filenames = [item.filename for item in commit_files]
         extensions = CodeCommitProvider._get_file_extensions(filenames)
 
         # Calculate the percentage of each file extension in the PR
@@ -268,7 +308,9 @@ class CodeCommitProvider(GitProvider):
         # We build that language->extension dictionary here in main_extensions_flat.
         main_extensions_flat = {}
         language_extension_map_org = get_settings().language_extension_map_org
-        language_extension_map = {k.lower(): v for k, v in language_extension_map_org.items()}
+        language_extension_map = {
+            k.lower(): v for k, v in language_extension_map_org.items()
+        }
         for language, extensions in language_extension_map.items():
             for ext in extensions:
                 main_extensions_flat[ext] = language
@@ -290,14 +332,20 @@ class CodeCommitProvider(GitProvider):
         return -1  # not implemented yet
 
     def get_issue_comments(self):
-        raise NotImplementedError("CodeCommit provider does not support issue comments yet")
+        raise NotImplementedError(
+            "CodeCommit provider does not support issue comments yet"
+        )
 
     def get_repo_settings(self):
         # a local ".pr_action.toml" settings file is optional
         settings_filename = ".pr_action.toml"
-        return self.codecommit_client.get_file(self.repo_name, settings_filename, self.pr.source_commit, optional=True)
+        return self.codecommit_client.get_file(
+            self.repo_name, settings_filename, self.pr.source_commit, optional=True
+        )
 
-    def add_eyes_reaction(self, issue_comment_id: int, disable_eyes: bool = False) -> Optional[int]:
+    def add_eyes_reaction(
+        self, issue_comment_id: int, disable_eyes: bool = False
+    ) -> Optional[int]:
         get_logger().info("CodeCommit provider does not support eyes reaction yet")
         return True
 
@@ -321,7 +369,9 @@ class CodeCommitProvider(GitProvider):
         parsed_url = urlparse(pr_url)
 
         if not CodeCommitProvider._is_valid_codecommit_hostname(parsed_url.netloc):
-            raise ValueError(f"The provided URL is not a valid CodeCommit URL: {pr_url}")
+            raise ValueError(
+                f"The provided URL is not a valid CodeCommit URL: {pr_url}"
+            )
 
         path_parts = parsed_url.path.strip("/").split("/")
 
@@ -332,14 +382,18 @@ class CodeCommitProvider(GitProvider):
             or path_parts[2] != "repositories"
             or path_parts[4] != "pull-requests"
         ):
-            raise ValueError(f"The provided URL does not appear to be a CodeCommit PR URL: {pr_url}")
+            raise ValueError(
+                f"The provided URL does not appear to be a CodeCommit PR URL: {pr_url}"
+            )
 
         repo_name = path_parts[3]
 
         try:
             pr_number = int(path_parts[5])
         except ValueError as e:
-            raise ValueError(f"Unable to convert PR number to integer: '{path_parts[5]}'") from e
+            raise ValueError(
+                f"Unable to convert PR number to integer: '{path_parts[5]}'"
+            ) from e
 
         return repo_name, pr_number
 
@@ -348,7 +402,7 @@ class CodeCommitProvider(GitProvider):
         """
         Check if the provided hostname is a valid AWS CodeCommit hostname.
 
-        This is not an exhaustive check of AWS region names, 
+        This is not an exhaustive check of AWS region names,
         but instead uses a regex to check for matching AWS region patterns.
 
         Args:
@@ -357,7 +411,12 @@ class CodeCommitProvider(GitProvider):
         Returns:
         - bool: True if the hostname is valid, False otherwise.
         """
-        return re.match(r"^[a-z]{2}-(gov-)?[a-z]+-\d\.console\.aws\.amazon\.com$", hostname) is not None
+        return (
+            re.match(
+                r"^[a-z]{2}-(gov-)?[a-z]+-\d\.console\.aws\.amazon\.com$", hostname
+            )
+            is not None
+        )
 
     def _get_pr(self):
         response = self.codecommit_client.get_pr(self.repo_name, self.pr_num)
@@ -400,7 +459,7 @@ class CodeCommitProvider(GitProvider):
         Returns:
         - str: the PR body with the double newlines added
         """
-        return re.sub(r'(?<!\n)\n(?!\n)', '\n\n', body)
+        return re.sub(r"(?<!\n)\n(?!\n)", "\n\n", body)
 
     @staticmethod
     def _remove_markdown_html(comment: str) -> str:

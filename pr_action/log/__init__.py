@@ -31,7 +31,9 @@ def setup_logger(level: str = "INFO", fmt: LoggingFormat = LoggingFormat.CONSOLE
     if type(level) is not int:
         level = logging.INFO
 
-    if fmt == LoggingFormat.JSON and os.getenv("LOG_SANE", "0").lower() == "0":  # better debugging github_app
+    if (
+        fmt == LoggingFormat.JSON and os.getenv("LOG_SANE", "0").lower() == "0"
+    ):  # better debugging github_app
         logger.remove(None)
         logger.add(
             sys.stdout,
@@ -41,7 +43,7 @@ def setup_logger(level: str = "INFO", fmt: LoggingFormat = LoggingFormat.CONSOLE
             colorize=False,
             serialize=True,
         )
-    elif fmt == LoggingFormat.CONSOLE: # does not print the 'extra' fields
+    elif fmt == LoggingFormat.CONSOLE:  # does not print the 'extra' fields
         logger.remove(None)
         logger.add(sys.stdout, level=level, colorize=True, filter=inv_analytics_filter)
 

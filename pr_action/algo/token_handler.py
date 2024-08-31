@@ -1,8 +1,9 @@
-from jinja2 import Environment, StrictUndefined
-from tiktoken import encoding_for_model, get_encoding
-from pr_action.config_loader import get_settings
 from threading import Lock
 
+from jinja2 import Environment, StrictUndefined
+from tiktoken import encoding_for_model, get_encoding
+
+from pr_action.config_loader import get_settings
 from pr_action.log import get_logger
 
 
@@ -14,12 +15,17 @@ class TokenEncoder:
     @classmethod
     def get_token_encoder(cls):
         model = get_settings().config.model
-        if cls._encoder_instance is None or model != cls._model:  # Check without acquiring the lock for performance
+        if (
+            cls._encoder_instance is None or model != cls._model
+        ):  # Check without acquiring the lock for performance
             with cls._lock:  # Lock acquisition to ensure thread safety
                 if cls._encoder_instance is None or model != cls._model:
                     cls._model = model
-                    cls._encoder_instance = encoding_for_model(cls._model) if "gpt" in cls._model else get_encoding(
-                        "cl100k_base")
+                    cls._encoder_instance = (
+                        encoding_for_model(cls._model)
+                        if "gpt" in cls._model
+                        else get_encoding("cl100k_base")
+                    )
         return cls._encoder_instance
 
 
@@ -48,7 +54,9 @@ class TokenHandler:
         """
         self.encoder = TokenEncoder.get_token_encoder()
         if pr is not None:
-            self.prompt_tokens = self._get_system_user_tokens(pr, self.encoder, vars, system, user)
+            self.prompt_tokens = self._get_system_user_tokens(
+                pr, self.encoder, vars, system, user
+            )
 
     def _get_system_user_tokens(self, pr, encoder, vars: dict, system, user):
         """

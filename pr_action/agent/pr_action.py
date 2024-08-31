@@ -3,7 +3,6 @@ from functools import partial
 
 from pr_action.algo.ai_handlers.base_ai_handler import BaseAiHandler
 from pr_action.algo.ai_handlers.litellm_ai_handler import LiteLLMAIHandler
-
 from pr_action.algo.utils import update_settings_from_args
 from pr_action.config_loader import get_settings
 from pr_action.git_providers.utils import apply_repo_settings
@@ -50,7 +49,7 @@ commands = list(command2class.keys())
 class PRAction:
     def __init__(self, ai_handler: partial[BaseAiHandler,] = LiteLLMAIHandler):
         self.ai_handler = ai_handler  # will be initialized in run_action
-        self.forbidden_cli_args = ['enable_auto_approval']
+        self.forbidden_cli_args = ["enable_auto_approval"]
 
     async def handle_request(self, pr_url, request, notify=None) -> bool:
         # First, apply repo specific settings if exists
@@ -86,14 +85,20 @@ class PRAction:
             if action == "answer":
                 if notify:
                     notify()
-                await PRReviewer(pr_url, is_answer=True, args=args, ai_handler=self.ai_handler).run()
+                await PRReviewer(
+                    pr_url, is_answer=True, args=args, ai_handler=self.ai_handler
+                ).run()
             elif action == "auto_review":
-                await PRReviewer(pr_url, is_auto=True, args=args, ai_handler=self.ai_handler).run()
+                await PRReviewer(
+                    pr_url, is_auto=True, args=args, ai_handler=self.ai_handler
+                ).run()
             elif action in command2class:
                 if notify:
                     notify()
 
-                await command2class[action](pr_url, ai_handler=self.ai_handler, args=args).run()
+                await command2class[action](
+                    pr_url, ai_handler=self.ai_handler, args=args
+                ).run()
             else:
                 return False
             return True

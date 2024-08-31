@@ -1,7 +1,8 @@
 import os
-import requests
+
 import litellm
 import openai
+import requests
 from litellm import acompletion
 from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
@@ -30,12 +31,17 @@ class LiteLLMAIHandler(BaseAiHandler):
         if get_settings().get("OPENAI.KEY", None):
             openai.api_key = get_settings().openai.key
             litellm.openai_key = get_settings().openai.key
-        elif 'OPENAI_API_KEY' not in os.environ:
+        elif "OPENAI_API_KEY" not in os.environ:
             litellm.api_key = "dummy_key"
         if get_settings().get("aws.AWS_ACCESS_KEY_ID"):
-            assert get_settings().aws.AWS_SECRET_ACCESS_KEY and get_settings().aws.AWS_REGION_NAME, "AWS credentials are incomplete"
+            assert (
+                get_settings().aws.AWS_SECRET_ACCESS_KEY
+                and get_settings().aws.AWS_REGION_NAME
+            ), "AWS credentials are incomplete"
             os.environ["AWS_ACCESS_KEY_ID"] = get_settings().aws.AWS_ACCESS_KEY_ID
-            os.environ["AWS_SECRET_ACCESS_KEY"] = get_settings().aws.AWS_SECRET_ACCESS_KEY
+            os.environ[
+                "AWS_SECRET_ACCESS_KEY"
+            ] = get_settings().aws.AWS_SECRET_ACCESS_KEY
             os.environ["AWS_REGION_NAME"] = get_settings().aws.AWS_REGION_NAME
         if get_settings().get("litellm.use_client"):
             litellm_token = get_settings().get("litellm.LITELLM_TOKEN")
@@ -70,29 +76,35 @@ class LiteLLMAIHandler(BaseAiHandler):
             litellm.replicate_key = get_settings().replicate.key
         if get_settings().get("HUGGINGFACE.KEY", None):
             litellm.huggingface_key = get_settings().huggingface.key
-        if get_settings().get("HUGGINGFACE.API_BASE", None) and 'huggingface' in get_settings().config.model:
+        if (
+            get_settings().get("HUGGINGFACE.API_BASE", None)
+            and "huggingface" in get_settings().config.model
+        ):
             litellm.api_base = get_settings().huggingface.api_base
             self.api_base = get_settings().huggingface.api_base
         if get_settings().get("OLLAMA.API_BASE", None):
             litellm.api_base = get_settings().ollama.api_base
             self.api_base = get_settings().ollama.api_base
         if get_settings().get("HUGGINGFACE.REPETITION_PENALTY", None):
-            self.repetition_penalty = float(get_settings().huggingface.repetition_penalty)
+            self.repetition_penalty = float(
+                get_settings().huggingface.repetition_penalty
+            )
         if get_settings().get("VERTEXAI.VERTEX_PROJECT", None):
             litellm.vertex_project = get_settings().vertexai.vertex_project
             litellm.vertex_location = get_settings().get(
                 "VERTEXAI.VERTEX_LOCATION", None
             )
+
     def prepare_logs(self, response, system, user, resp, finish_reason):
         response_log = response.dict().copy()
-        response_log['system'] = system
-        response_log['user'] = user
-        response_log['output'] = resp
-        response_log['finish_reason'] = finish_reason
-        if hasattr(self, 'main_pr_language'):
-            response_log['main_pr_language'] = self.main_pr_language
+        response_log["system"] = system
+        response_log["user"] = user
+        response_log["output"] = resp
+        response_log["finish_reason"] = finish_reason
+        if hasattr(self, "main_pr_language"):
+            response_log["main_pr_language"] = self.main_pr_language
         else:
-            response_log['main_pr_language'] = 'unknown'
+            response_log["main_pr_language"] = "unknown"
         return response_log
 
     def add_litellm_callbacks(selfs, kwargs) -> dict:
@@ -102,10 +114,10 @@ class LiteLLMAIHandler(BaseAiHandler):
             # Parsing the log message and context
             record = message.record
             log_entry = {}
-            if record.get('extra', None).get('command', None) is not None:
-                log_entry.update({"command": record['extra']["command"]})
-            if record.get('extra', {}).get('pr_url', None) is not None:
-                log_entry.update({"pr_url": record['extra']["pr_url"]})
+            if record.get("extra", None).get("command", None) is not None:
+                log_entry.update({"command": record["extra"]["command"]})
+            if record.get("extra", {}).get("pr_url", None) is not None:
+                log_entry.update({"pr_url": record["extra"]["pr_url"]})
 
             # Append the log entry to the captured_logs list
             captured_extra.append(log_entry)
@@ -122,27 +134,35 @@ class LiteLLMAIHandler(BaseAiHandler):
         git_provider = get_settings().config.git_provider
 
         metadata = dict()
-        callbacks = litellm.success_callback + litellm.failure_callback + litellm.service_callback
+        callbacks = (
+            litellm.success_callback
+            + litellm.failure_callback
+            + litellm.service_callback
+        )
         if "langfuse" in callbacks:
-            metadata.update({
-                "trace_name": command,
-                "tags": [git_provider, command],
-                "trace_metadata": {
-                    "command": command,
-                    "pr_url": pr_url,
-                },
-            })
-        if "langsmith" in callbacks:
-            metadata.update({
-                "run_name": command,
-                "tags": [git_provider, command],
-                "extra": {
-                    "metadata": {
+            metadata.update(
+                {
+                    "trace_name": command,
+                    "tags": [git_provider, command],
+                    "trace_metadata": {
                         "command": command,
                         "pr_url": pr_url,
-                    }
-                },
-            })
+                    },
+                }
+            )
+        if "langsmith" in callbacks:
+            metadata.update(
+                {
+                    "run_name": command,
+                    "tags": [git_provider, command],
+                    "extra": {
+                        "metadata": {
+                            "command": command,
+                            "pr_url": pr_url,
+                        }
+                    },
+                }
+            )
 
         # Adding the captured logs to the kwargs
         kwargs["metadata"] = metadata
@@ -157,20 +177,33 @@ class LiteLLMAIHandler(BaseAiHandler):
         return get_settings().get("OPENAI.DEPLOYMENT_ID", None)
 
     @retry(
-        retry=retry_if_exception_type((openai.APIError, openai.APIConnectionError, openai.APITimeoutError)), # No retry on RateLimitError
-        stop=stop_after_attempt(OPENAI_RETRIES)
+        retry=retry_if_exception_type(
+            (openai.APIError, openai.APIConnectionError, openai.APITimeoutError)
+        ),  # No retry on RateLimitError
+        stop=stop_after_attempt(OPENAI_RETRIES),
     )
-    async def chat_completion(self, model: str, system: str, user: str, temperature: float = 0.2, img_path: str = None):
+    async def chat_completion(
+        self,
+        model: str,
+        system: str,
+        user: str,
+        temperature: float = 0.2,
+        img_path: str = None,
+    ):
         try:
             resp, finish_reason = None, None
             deployment_id = self.deployment_id
             if self.azure:
-                model = 'azure/' + model
-            if 'claude' in model and not system:
+                model = "azure/" + model
+            if "claude" in model and not system:
                 system = "\n"
                 get_logger().warning(
-                    "Empty system prompt for claude model. Adding a newline character to prevent OpenAI API error.")
-            messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+                    "Empty system prompt for claude model. Adding a newline character to prevent OpenAI API error."
+                )
+            messages = [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ]
             if img_path:
                 try:
                     # check if the image link is alive
@@ -182,8 +215,10 @@ class LiteLLMAIHandler(BaseAiHandler):
                 except Exception as e:
                     get_logger().error(f"Error fetching image: {img_path}", e)
                     return f"Error fetching image: {img_path}", "error"
-                messages[1]["content"] = [{"type": "text", "text": messages[1]["content"]},
-                                          {"type": "image_url", "image_url": {"url": img_path}}]
+                messages[1]["content"] = [
+                    {"type": "text", "text": messages[1]["content"]},
+                    {"type": "image_url", "image_url": {"url": img_path}},
+                ]
 
             kwargs = {
                 "model": model,
@@ -199,7 +234,9 @@ class LiteLLMAIHandler(BaseAiHandler):
 
             seed = get_settings().config.get("seed", -1)
             if temperature > 0 and seed >= 0:
-                raise ValueError(f"Seed ({seed}) is not supported with temperature ({temperature}) > 0")
+                raise ValueError(
+                    f"Seed ({seed}) is not supported with temperature ({temperature}) > 0"
+                )
             elif seed >= 0:
                 get_logger().info(f"Using fixed seed of {seed}")
                 kwargs["seed"] = seed
@@ -217,21 +254,23 @@ class LiteLLMAIHandler(BaseAiHandler):
         except (openai.APIError, openai.APITimeoutError) as e:
             get_logger().warning("Error during OpenAI inference: ", e)
             raise
-        except (openai.RateLimitError) as e:
+        except openai.RateLimitError as e:
             get_logger().error("Rate limit error during OpenAI inference: ", e)
             raise
-        except (Exception) as e:
+        except Exception as e:
             get_logger().warning("Unknown error during OpenAI inference: ", e)
             raise openai.APIError from e
         if response is None or len(response["choices"]) == 0:
             raise openai.APIError
         else:
-            resp = response["choices"][0]['message']['content']
+            resp = response["choices"][0]["message"]["content"]
             finish_reason = response["choices"][0]["finish_reason"]
             get_logger().debug(f"\nAI response:\n{resp}")
 
             # log the full response for debugging
-            response_log = self.prepare_logs(response, system, user, resp, finish_reason)
+            response_log = self.prepare_logs(
+                response, system, user, resp, finish_reason
+            )
             get_logger().debug("Full_response", artifact=response_log)
 
             # for CLI debugging

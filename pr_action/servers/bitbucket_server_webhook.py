@@ -6,20 +6,20 @@ from typing import List
 import uvicorn
 from fastapi import APIRouter, FastAPI
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import RedirectResponse
 from starlette import status
 from starlette.background import BackgroundTasks
 from starlette.middleware import Middleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette_context.middleware import RawContextMiddleware
+
 from pr_action.agent.pr_action import PRAction
 from pr_action.algo.utils import update_settings_from_args
 from pr_action.config_loader import get_settings
 from pr_action.git_providers.utils import apply_repo_settings
 from pr_action.log import LoggingFormat, get_logger, setup_logger
 from pr_action.servers.utils import verify_signature
-from fastapi.responses import RedirectResponse
-
 
 setup_logger(fmt=LoggingFormat.JSON, level="DEBUG")
 router = APIRouter()
@@ -40,9 +40,11 @@ def handle_request(
 
     background_tasks.add_task(inner)
 
+
 @router.post("/")
 async def redirect_to_webhook():
     return RedirectResponse(url="/webhook")
+
 
 @router.post("/webhook")
 async def handle_webhook(background_tasks: BackgroundTasks, request: Request):
@@ -53,9 +55,10 @@ async def handle_webhook(background_tasks: BackgroundTasks, request: Request):
     webhook_secret = get_settings().get("BITBUCKET_SERVER.WEBHOOK_SECRET", None)
     if webhook_secret:
         body_bytes = await request.body()
-        if body_bytes.decode('utf-8') == '{"test": true}':
+        if body_bytes.decode("utf-8") == '{"test": true}':
             return JSONResponse(
-                status_code=status.HTTP_200_OK, content=jsonable_encoder({"message": "connection test successful"})
+                status_code=status.HTTP_200_OK,
+                content=jsonable_encoder({"message": "connection test successful"}),
             )
         signature_header = request.headers.get("x-hub-signature", None)
         verify_signature(body_bytes, webhook_secret, signature_header)
@@ -72,7 +75,9 @@ async def handle_webhook(background_tasks: BackgroundTasks, request: Request):
     commands_to_run = []
 
     if data["eventKey"] == "pr:opened":
-        commands_to_run.extend(_get_commands_list_from_settings('BITBUCKET_SERVER.PR_COMMANDS'))
+        commands_to_run.extend(
+            _get_commands_list_from_settings("BITBUCKET_SERVER.PR_COMMANDS")
+        )
     elif data["eventKey"] == "pr:comment:added":
         commands_to_run.append(data["comment"]["text"])
     else:
@@ -111,6 +116,7 @@ async def _run_commands_sequentially(commands: List[str], url: str, log_context:
         except Exception as e:
             get_logger().error(f"Failed to handle command: {command} , error: {e}")
 
+
 def _process_command(command: str, url) -> str:
     # don't think we need this
     apply_repo_settings(url)
@@ -120,7 +126,7 @@ def _process_command(command: str, url) -> str:
     args = split_command[1:]
     # do I need this? if yes, shouldn't this be done in PRAction?
     other_args = update_settings_from_args(args)
-    new_command = ' '.join([command] + other_args)
+    new_command = " ".join([command] + other_args)
     return new_command
 
 
@@ -137,11 +143,13 @@ def _to_list(command_string: str) -> list:
         raise ValueError(f"Invalid command string: {e}")
 
 
-def _get_commands_list_from_settings(setting_key:str ) -> list:
+def _get_commands_list_from_settings(setting_key: str) -> list:
     try:
         return get_settings().get(setting_key, [])
     except ValueError as e:
-        get_logger().error(f"Failed to get commands list from settings {setting_key}: {e}")
+        get_logger().error(
+            f"Failed to get commands list from settings {setting_key}: {e}"
+        )
 
 
 @router.get("/")

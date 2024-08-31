@@ -1,9 +1,13 @@
-import pytest
 from unittest.mock import patch
-from pr_action.git_providers.codecommit_provider import CodeCommitFile
-from pr_action.git_providers.codecommit_provider import CodeCommitProvider
-from pr_action.git_providers.codecommit_provider import PullRequestCCMimic
+
+import pytest
+
 from pr_action.algo.types import EDIT_TYPE, FilePatchInfo
+from pr_action.git_providers.codecommit_provider import (
+    CodeCommitFile,
+    CodeCommitProvider,
+    PullRequestCCMimic,
+)
 
 
 class TestCodeCommitFile:
@@ -51,46 +55,112 @@ class TestCodeCommitProvider:
 
     def test_is_valid_codecommit_hostname(self):
         # Test the various AWS regions
-        assert CodeCommitProvider._is_valid_codecommit_hostname("af-south-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-east-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-northeast-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-northeast-2.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-northeast-3.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-south-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-south-2.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-southeast-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-southeast-2.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-southeast-3.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ap-southeast-4.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("ca-central-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("eu-central-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("eu-central-2.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("eu-north-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("eu-south-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("eu-south-2.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("eu-west-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("eu-west-2.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("eu-west-3.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("il-central-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("me-central-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("me-south-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("sa-east-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("us-east-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("us-east-2.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("us-gov-east-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("us-gov-west-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("us-west-1.console.aws.amazon.com")
-        assert CodeCommitProvider._is_valid_codecommit_hostname("us-west-2.console.aws.amazon.com")
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "af-south-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-east-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-northeast-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-northeast-2.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-northeast-3.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-south-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-south-2.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-southeast-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-southeast-2.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-southeast-3.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ap-southeast-4.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "ca-central-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "eu-central-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "eu-central-2.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "eu-north-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "eu-south-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "eu-south-2.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "eu-west-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "eu-west-2.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "eu-west-3.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "il-central-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "me-central-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "me-south-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "sa-east-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "us-east-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "us-east-2.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "us-gov-east-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "us-gov-west-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "us-west-1.console.aws.amazon.com"
+        )
+        assert CodeCommitProvider._is_valid_codecommit_hostname(
+            "us-west-2.console.aws.amazon.com"
+        )
         # Test non-AWS regions
-        assert not CodeCommitProvider._is_valid_codecommit_hostname("no-such-region.console.aws.amazon.com")
-        assert not CodeCommitProvider._is_valid_codecommit_hostname("console.aws.amazon.com")
+        assert not CodeCommitProvider._is_valid_codecommit_hostname(
+            "no-such-region.console.aws.amazon.com"
+        )
+        assert not CodeCommitProvider._is_valid_codecommit_hostname(
+            "console.aws.amazon.com"
+        )
 
     # Test that an error is raised when an invalid CodeCommit URL is provided to the set_pr() method of the CodeCommitProvider class.
     # Generated by KhulnaSoft
     def test_invalid_codecommit_url(self):
         provider = CodeCommitProvider()
         with pytest.raises(ValueError):
-            provider.set_pr("https://example.com/codecommit/repositories/my_test_repo/pull-requests/4321")
+            provider.set_pr(
+                "https://example.com/codecommit/repositories/my_test_repo/pull-requests/4321"
+            )
 
     def test_get_file_extensions(self):
         filenames = [

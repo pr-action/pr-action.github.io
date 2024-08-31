@@ -24,7 +24,7 @@ import os
 #
 
 # bind = '0.0.0.0:5000'
-bind = '0.0.0.0:3000'
+bind = "0.0.0.0:3000"
 backlog = 2048
 
 #
@@ -71,8 +71,8 @@ backlog = 2048
 #       A positive integer. Generally set in the 1-5 seconds range.
 #
 
-if os.getenv('GUNICORN_WORKERS', None):
-    workers = int(os.getenv('GUNICORN_WORKERS'))
+if os.getenv("GUNICORN_WORKERS", None):
+    workers = int(os.getenv("GUNICORN_WORKERS"))
 else:
     cores = multiprocessing.cpu_count()
     workers = cores * 2 + 1
@@ -151,8 +151,8 @@ tmp_upload_dir = None
 #       A string of "debug", "info", "warning", "error", "critical"
 #
 
-errorlog = '-'
-loglevel = 'info'
+errorlog = "-"
+loglevel = "info"
 accesslog = None
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 

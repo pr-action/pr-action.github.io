@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 
 class EDIT_TYPE(Enum):
@@ -18,6 +19,6 @@ class FilePatchInfo:
     filename: str
     tokens: int = -1
     edit_type: EDIT_TYPE = EDIT_TYPE.UNKNOWN
-    old_filename: str = None
+    old_filename: Optional[str] = None
     num_plus_lines: int = -1
     num_minus_lines: int = -1

@@ -6,13 +6,14 @@ import requests
 from atlassian.bitbucket import Cloud
 from starlette_context import context
 
-from pr_action.algo.types import FilePatchInfo, EDIT_TYPE
+from pr_action.algo.types import EDIT_TYPE, FilePatchInfo
+
 from ..algo.file_filter import filter_ignored
 from ..algo.language_handler import is_valid_file
 from ..algo.utils import find_line_number_of_relevant_line_in_file
 from ..config_loader import get_settings
 from ..log import get_logger
-from .git_provider import GitProvider, MAX_FILES_ALLOWED_FULL
+from .git_provider import MAX_FILES_ALLOWED_FULL, GitProvider
 
 
 def _gef_filename(diff):
@@ -49,17 +50,23 @@ class BitbucketProvider(GitProvider):
         self.git_files = None
         if pr_url:
             self.set_pr(pr_url)
-        self.bitbucket_comment_api_url = self.pr._BitbucketBase__data["links"]["comments"]["href"]
-        self.bitbucket_pull_request_api_url = self.pr._BitbucketBase__data["links"]['self']['href']
+        self.bitbucket_comment_api_url = self.pr._BitbucketBase__data["links"][
+            "comments"
+        ]["href"]
+        self.bitbucket_pull_request_api_url = self.pr._BitbucketBase__data["links"][
+            "self"
+        ]["href"]
 
     def get_repo_settings(self):
         try:
-            url = (f"https://api.bitbucket.org/2.0/repositories/{self.workspace_slug}/{self.repo_slug}/src/"
-                   f"{self.pr.destination_branch}/.pr_action.toml")
+            url = (
+                f"https://api.bitbucket.org/2.0/repositories/{self.workspace_slug}/{self.repo_slug}/src/"
+                f"{self.pr.destination_branch}/.pr_action.toml"
+            )
             response = requests.request("GET", url, headers=self.headers)
             if response.status_code == 404:  # not found
                 return ""
-            contents = response.text.encode('utf-8')
+            contents = response.text.encode("utf-8")
             return contents
         except Exception:
             return ""
@@ -120,8 +127,13 @@ class BitbucketProvider(GitProvider):
         pass
 
     def is_supported(self, capability: str) -> bool:
-        if capability in ['get_issue_comments', 'publish_inline_comments', 'get_labels', 'gfm_markdown',
-                            'publish_file_comments']:
+        if capability in [
+            "get_issue_comments",
+            "publish_inline_comments",
+            "get_labels",
+            "gfm_markdown",
+            "publish_file_comments",
+        ]:
             return False
         return True
 
@@ -142,35 +154,44 @@ class BitbucketProvider(GitProvider):
                 self.git_files = [_gef_filename(diff) for diff in self.pr.diffstat()]
             return self.git_files
 
-
     def get_diff_files(self) -> list[FilePatchInfo]:
         if self.diff_files:
             return self.diff_files
 
         diffs_original = list(self.pr.diffstat())
-        diffs = filter_ignored(diffs_original, 'bitbucket')
+        diffs = filter_ignored(diffs_original, "bitbucket")
         if diffs != diffs_original:
             try:
                 names_original = [d.new.path for d in diffs_original]
                 names_kept = [d.new.path for d in diffs]
                 names_filtered = list(set(names_original) - set(names_kept))
-                get_logger().info(f"Filtered out [ignore] files for PR", extra={
-                    'original_files': names_original,
-                    'names_kept': names_kept,
-                    'names_filtered': names_filtered
-
-                })
+                get_logger().info(
+                    f"Filtered out [ignore] files for PR",
+                    extra={
+                        "original_files": names_original,
+                        "names_kept": names_kept,
+                        "names_filtered": names_filtered,
+                    },
+                )
             except Exception as e:
                 pass
 
         # get the pr patches
         pr_patch = self.pr.diff()
-        diff_split = ["diff --git" + x for x in pr_patch.split("diff --git") if x.strip()]
+        diff_split = [
+            "diff --git" + x for x in pr_patch.split("diff --git") if x.strip()
+        ]
         # filter all elements of 'diff_split' that are of indices in 'diffs_original' that are not in 'diffs'
         if len(diff_split) > len(diffs) and len(diffs_original) == len(diff_split):
-            diff_split = [diff_split[i] for i in range(len(diff_split)) if diffs_original[i] in diffs]
+            diff_split = [
+                diff_split[i]
+                for i in range(len(diff_split))
+                if diffs_original[i] in diffs
+            ]
         if len(diff_split) != len(diffs):
-            get_logger().error(f"Error - failed to split the diff into {len(diffs)} parts")
+            get_logger().error(
+                f"Error - failed to split the diff into {len(diffs)} parts"
+            )
             return []
         # bitbucket diff has a header for each file, we need to remove it:
         # "diff --git filename
@@ -181,22 +202,34 @@ class BitbucketProvider(GitProvider):
         #   @@ -... @@"
         for i, _ in enumerate(diff_split):
             diff_split_lines = diff_split[i].splitlines()
-            if (len(diff_split_lines) >= 6) and \
-                    ((diff_split_lines[2].startswith("---") and
-                      diff_split_lines[3].startswith("+++") and
-                      diff_split_lines[4].startswith("@@")) or
-                     (diff_split_lines[3].startswith("---") and  # new or deleted file
-                      diff_split_lines[4].startswith("+++") and
-                      diff_split_lines[5].startswith("@@"))):
+            if (len(diff_split_lines) >= 6) and (
+                (
+                    diff_split_lines[2].startswith("---")
+                    and diff_split_lines[3].startswith("+++")
+                    and diff_split_lines[4].startswith("@@")
+                )
+                or (
+                    diff_split_lines[3].startswith("---")  # new or deleted file
+                    and diff_split_lines[4].startswith("+++")
+                    and diff_split_lines[5].startswith("@@")
+                )
+            ):
                 diff_split[i] = "\n".join(diff_split_lines[4:])
             else:
-                if diffs[i].data.get('lines_added', 0) == 0 and diffs[i].data.get('lines_removed', 0) == 0:
+                if (
+                    diffs[i].data.get("lines_added", 0) == 0
+                    and diffs[i].data.get("lines_removed", 0) == 0
+                ):
                     diff_split[i] = ""
                 elif len(diff_split_lines) <= 3:
                     diff_split[i] = ""
-                    get_logger().info(f"Disregarding empty diff for file {_gef_filename(diffs[i])}")
+                    get_logger().info(
+                        f"Disregarding empty diff for file {_gef_filename(diffs[i])}"
+                    )
                 else:
-                    get_logger().error(f"Error - failed to get diff for file {_gef_filename(diffs[i])}")
+                    get_logger().error(
+                        f"Error - failed to get diff for file {_gef_filename(diffs[i])}"
+                    )
                     diff_split[i] = ""
 
         invalid_files_names = []
@@ -210,24 +243,32 @@ class BitbucketProvider(GitProvider):
 
             try:
                 counter_valid += 1
-                if counter_valid < MAX_FILES_ALLOWED_FULL // 2:  # factor 2 because bitbucket has limited API calls
+                if (
+                    counter_valid < MAX_FILES_ALLOWED_FULL // 2
+                ):  # factor 2 because bitbucket has limited API calls
                     if diff.old.get_data("links"):
                         original_file_content_str = self._get_pr_file_content(
-                            diff.old.get_data("links")['self']['href'])
+                            diff.old.get_data("links")["self"]["href"]
+                        )
                     else:
                         original_file_content_str = ""
                     if diff.new.get_data("links"):
-                        new_file_content_str = self._get_pr_file_content(diff.new.get_data("links")['self']['href'])
+                        new_file_content_str = self._get_pr_file_content(
+                            diff.new.get_data("links")["self"]["href"]
+                        )
                     else:
                         new_file_content_str = ""
                 else:
                     if counter_valid == MAX_FILES_ALLOWED_FULL // 2:
                         get_logger().info(
-                            f"Bitbucket too many files in PR, will avoid loading full content for rest of files")
+                            f"Bitbucket too many files in PR, will avoid loading full content for rest of files"
+                        )
                     original_file_content_str = ""
                     new_file_content_str = ""
             except Exception as e:
-                get_logger().exception(f"Error - bitbucket failed to get file content, error: {e}")
+                get_logger().exception(
+                    f"Error - bitbucket failed to get file content, error: {e}"
+                )
                 original_file_content_str = ""
                 new_file_content_str = ""
 
@@ -238,33 +279,38 @@ class BitbucketProvider(GitProvider):
                 file_path,
             )
 
-            if diff.data['status'] == 'added':
+            if diff.data["status"] == "added":
                 file_patch_canonic_structure.edit_type = EDIT_TYPE.ADDED
-            elif diff.data['status'] == 'removed':
+            elif diff.data["status"] == "removed":
                 file_patch_canonic_structure.edit_type = EDIT_TYPE.DELETED
-            elif diff.data['status'] == 'modified':
+            elif diff.data["status"] == "modified":
                 file_patch_canonic_structure.edit_type = EDIT_TYPE.MODIFIED
-            elif diff.data['status'] == 'renamed':
+            elif diff.data["status"] == "renamed":
                 file_patch_canonic_structure.edit_type = EDIT_TYPE.RENAMED
             diff_files.append(file_patch_canonic_structure)
 
         if invalid_files_names:
-            get_logger().info(f"Disregarding files with invalid extensions:\n{invalid_files_names}")
+            get_logger().info(
+                f"Disregarding files with invalid extensions:\n{invalid_files_names}"
+            )
 
         self.diff_files = diff_files
         return diff_files
 
     def get_latest_commit_url(self):
-        return self.pr.data['source']['commit']['links']['html']['href']
+        return self.pr.data["source"]["commit"]["links"]["html"]["href"]
 
     def get_comment_url(self, comment):
-        return comment.data['links']['html']['href']
+        return comment.data["links"]["html"]["href"]
 
-    def publish_persistent_comment(self, pr_comment: str,
-                                   initial_header: str,
-                                   update_header: bool = True,
-                                   name='review',
-                                   final_update_message=True):
+    def publish_persistent_comment(
+        self,
+        pr_comment: str,
+        initial_header: str,
+        update_header: bool = True,
+        name="review",
+        final_update_message=True,
+    ):
         try:
             for comment in self.pr.comments():
                 body = comment.raw
@@ -273,15 +319,20 @@ class BitbucketProvider(GitProvider):
                     comment_url = self.get_comment_url(comment)
                     if update_header:
                         updated_header = f"{initial_header}\n\n#### ({name.capitalize()} updated until commit {latest_commit_url})\n"
-                        pr_comment_updated = pr_comment.replace(initial_header, updated_header)
+                        pr_comment_updated = pr_comment.replace(
+                            initial_header, updated_header
+                        )
                     else:
                         pr_comment_updated = pr_comment
-                    get_logger().info(f"Persistent mode - updating comment {comment_url} to latest {name} message")
+                    get_logger().info(
+                        f"Persistent mode - updating comment {comment_url} to latest {name} message"
+                    )
                     d = {"content": {"raw": pr_comment_updated}}
                     response = comment._update_data(comment.put(None, data=d))
                     if final_update_message:
                         self.publish_comment(
-                            f"**[Persistent {name}]({comment_url})** updated to latest commit {latest_commit_url}")
+                            f"**[Persistent {name}]({comment_url})** updated to latest commit {latest_commit_url}"
+                        )
                     return
         except Exception as e:
             get_logger().exception(f"Failed to update persistent review, error: {e}")
@@ -316,38 +367,58 @@ class BitbucketProvider(GitProvider):
             get_logger().exception(f"Failed to remove comment, error: {e}")
 
     # function to create_inline_comment
-    def create_inline_comment(self, body: str, relevant_file: str, relevant_line_in_file: str, absolute_position: int = None):
+    def create_inline_comment(
+        self,
+        body: str,
+        relevant_file: str,
+        relevant_line_in_file: str,
+        absolute_position: int = None,
+    ):
         body = self.limit_output_characters(body, self.max_comment_length)
-        position, absolute_position = find_line_number_of_relevant_line_in_file(self.get_diff_files(),
-                                                                            relevant_file.strip('`'),
-                                                                            relevant_line_in_file, absolute_position)
+        position, absolute_position = find_line_number_of_relevant_line_in_file(
+            self.get_diff_files(),
+            relevant_file.strip("`"),
+            relevant_line_in_file,
+            absolute_position,
+        )
         if position == -1:
             if get_settings().config.verbosity_level >= 2:
-                get_logger().info(f"Could not find position for {relevant_file} {relevant_line_in_file}")
+                get_logger().info(
+                    f"Could not find position for {relevant_file} {relevant_line_in_file}"
+                )
             subject_type = "FILE"
         else:
             subject_type = "LINE"
         path = relevant_file.strip()
-        return dict(body=body, path=path, position=absolute_position) if subject_type == "LINE" else {}
+        return (
+            dict(body=body, path=path, position=absolute_position)
+            if subject_type == "LINE"
+            else {}
+        )
 
-
-    def publish_inline_comment(self, comment: str, from_line: int, file: str, original_suggestion=None):
+    def publish_inline_comment(
+        self, comment: str, from_line: int, file: str, original_suggestion=None
+    ):
         comment = self.limit_output_characters(comment, self.max_comment_length)
-        payload = json.dumps( {
-            "content": {
-                "raw": comment,
-            },
-            "inline": {
-                "to": from_line,
-                "path": file
-            },
-        })
+        payload = json.dumps(
+            {
+                "content": {
+                    "raw": comment,
+                },
+                "inline": {"to": from_line, "path": file},
+            }
+        )
         response = requests.request(
             "POST", self.bitbucket_comment_api_url, data=payload, headers=self.headers
         )
         return response
 
-    def get_line_link(self, relevant_file: str, relevant_line_start: int, relevant_line_end: int = None) -> str:
+    def get_line_link(
+        self,
+        relevant_file: str,
+        relevant_line_start: int,
+        relevant_line_end: int = None,
+    ) -> str:
         if relevant_line_start == -1:
             link = f"{self.pr_url}/#L{relevant_file}"
         else:
@@ -356,14 +427,15 @@ class BitbucketProvider(GitProvider):
 
     def generate_link_to_relevant_line_number(self, suggestion) -> str:
         try:
-            relevant_file = suggestion['relevant_file'].strip('`').strip("'").rstrip()
-            relevant_line_str = suggestion['relevant_line'].rstrip()
+            relevant_file = suggestion["relevant_file"].strip("`").strip("'").rstrip()
+            relevant_line_str = suggestion["relevant_line"].rstrip()
             if not relevant_line_str:
                 return ""
 
             diff_files = self.get_diff_files()
-            position, absolute_position = find_line_number_of_relevant_line_in_file \
-                (diff_files, relevant_file, relevant_line_str)
+            position, absolute_position = find_line_number_of_relevant_line_in_file(
+                diff_files, relevant_file, relevant_line_str
+            )
 
             if absolute_position != -1 and self.pr_url:
                 link = f"{self.pr_url}/#L{relevant_file}T{absolute_position}"
@@ -376,13 +448,19 @@ class BitbucketProvider(GitProvider):
 
     def publish_inline_comments(self, comments: list[dict]):
         for comment in comments:
-            if 'position' in comment:
-                self.publish_inline_comment(comment['body'], comment['position'], comment['path'])
-            elif 'start_line' in comment: # multi-line comment
+            if "position" in comment:
+                self.publish_inline_comment(
+                    comment["body"], comment["position"], comment["path"]
+                )
+            elif "start_line" in comment:  # multi-line comment
                 # note that bitbucket does not seem to support range - only a comment on a single line - https://community.developer.atlassian.com/t/api-post-endpoint-for-inline-pull-request-comments/60452
-                self.publish_inline_comment(comment['body'], comment['start_line'], comment['path'])
-            elif 'line' in comment: # single-line comment
-                self.publish_inline_comment(comment['body'], comment['line'], comment['path'])
+                self.publish_inline_comment(
+                    comment["body"], comment["start_line"], comment["path"]
+                )
+            elif "line" in comment:  # single-line comment
+                self.publish_inline_comment(
+                    comment["body"], comment["line"], comment["path"]
+                )
             else:
                 get_logger().error(f"Could not publish inline comment {comment}")
 
@@ -410,7 +488,9 @@ class BitbucketProvider(GitProvider):
             "Bitbucket provider does not support issue comments yet"
         )
 
-    def add_eyes_reaction(self, issue_comment_id: int, disable_eyes: bool = False) -> Optional[int]:
+    def add_eyes_reaction(
+        self, issue_comment_id: int, disable_eyes: bool = False
+    ) -> Optional[int]:
         return True
 
     def remove_reaction(self, issue_comment_id: int, reaction_id: int) -> bool:
@@ -455,8 +535,10 @@ class BitbucketProvider(GitProvider):
                 branch = self.pr.data["source"]["commit"]["hash"]
             elif branch == self.pr.destination_branch:
                 branch = self.pr.data["destination"]["commit"]["hash"]
-            url = (f"https://api.bitbucket.org/2.0/repositories/{self.workspace_slug}/{self.repo_slug}/src/"
-                   f"{branch}/{file_path}")
+            url = (
+                f"https://api.bitbucket.org/2.0/repositories/{self.workspace_slug}/{self.repo_slug}/src/"
+                f"{branch}/{file_path}"
+            )
             response = requests.request("GET", url, headers=self.headers)
             if response.status_code == 404:  # not found
                 return ""
@@ -465,24 +547,28 @@ class BitbucketProvider(GitProvider):
         except Exception:
             return ""
 
-
-    def create_or_update_pr_file(self, file_path: str, branch: str, contents="", message="") -> None:
-        url = (f"https://api.bitbucket.org/2.0/repositories/{self.workspace_slug}/{self.repo_slug}/src/")
+    def create_or_update_pr_file(
+        self, file_path: str, branch: str, contents="", message=""
+    ) -> None:
+        url = f"https://api.bitbucket.org/2.0/repositories/{self.workspace_slug}/{self.repo_slug}/src/"
         if not message:
             if contents:
                 message = f"Update {file_path}"
             else:
                 message = f"Create {file_path}"
-        files={file_path: contents}
-        data={
-            "message": message,
-            "branch": branch
-        }
-        headers = {'Authorization':self.headers['Authorization']} if 'Authorization' in self.headers else {}
+        files = {file_path: contents}
+        data = {"message": message, "branch": branch}
+        headers = (
+            {"Authorization": self.headers["Authorization"]}
+            if "Authorization" in self.headers
+            else {}
+        )
         try:
             requests.request("POST", url, headers=headers, data=data, files=files)
         except Exception:
-            get_logger().exception(f"Failed to create empty file {file_path} in branch {branch}")
+            get_logger().exception(
+                f"Failed to create empty file {file_path} in branch {branch}"
+            )
 
     def _get_pr_file_content(self, remote_link: str):
         try:
@@ -499,16 +585,19 @@ class BitbucketProvider(GitProvider):
 
     # bitbucket does not support labels
     def publish_description(self, pr_title: str, description: str):
-        payload = json.dumps({
-            "description": description,
-            "title": pr_title
+        payload = json.dumps({"description": description, "title": pr_title})
 
-            })
-
-        response = requests.request("PUT", self.bitbucket_pull_request_api_url, headers=self.headers, data=payload)
+        response = requests.request(
+            "PUT",
+            self.bitbucket_pull_request_api_url,
+            headers=self.headers,
+            data=payload,
+        )
         try:
             if response.status_code != 200:
-                get_logger().info(f"Failed to update description, error code: {response.status_code}")
+                get_logger().info(
+                    f"Failed to update description, error code: {response.status_code}"
+                )
         except:
             pass
         return response

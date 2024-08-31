@@ -36,37 +36,53 @@ Additional aspects:
 class TestHandlePatchDeletions:
     # Tests that handle_patch_deletions returns the original patch when new_file_content_str is not empty
     def test_handle_patch_deletions_happy_path_new_file_content_exists(self):
-        patch = '--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar\n+baz\n'
-        original_file_content_str = 'foo\nbar\n'
-        new_file_content_str = 'foo\nbaz\n'
-        file_name = 'file.py'
-        assert handle_patch_deletions(patch, original_file_content_str, new_file_content_str,
-                                      file_name) == patch.rstrip()
+        patch = "--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar\n+baz\n"
+        original_file_content_str = "foo\nbar\n"
+        new_file_content_str = "foo\nbaz\n"
+        file_name = "file.py"
+        assert (
+            handle_patch_deletions(
+                patch, original_file_content_str, new_file_content_str, file_name
+            )
+            == patch.rstrip()
+        )
 
     # Tests that handle_patch_deletions returns 'File was deleted' when new_file_content_str is empty
     def test_handle_patch_deletions_edge_case_new_file_content_empty(self):
-        patch = '--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar\n'
-        original_file_content_str = 'foo\nbar\n'
-        new_file_content_str = ''
-        file_name = 'file.py'
-        assert handle_patch_deletions(patch, original_file_content_str, new_file_content_str,
-                                      file_name) is None
+        patch = "--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar\n"
+        original_file_content_str = "foo\nbar\n"
+        new_file_content_str = ""
+        file_name = "file.py"
+        assert (
+            handle_patch_deletions(
+                patch, original_file_content_str, new_file_content_str, file_name
+            )
+            is None
+        )
 
     # Tests that handle_patch_deletions returns the original patch when patch and patch_new are equal
     def test_handle_patch_deletions_edge_case_patch_and_patch_new_are_equal(self):
-        patch = '--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar\n'
-        original_file_content_str = 'foo\nbar\n'
-        new_file_content_str = 'foo\nbar\n'
-        file_name = 'file.py'
-        assert handle_patch_deletions(patch, original_file_content_str, new_file_content_str,
-                                      file_name).rstrip() == patch.rstrip()
+        patch = "--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar\n"
+        original_file_content_str = "foo\nbar\n"
+        new_file_content_str = "foo\nbar\n"
+        file_name = "file.py"
+        assert (
+            handle_patch_deletions(
+                patch, original_file_content_str, new_file_content_str, file_name
+            ).rstrip()
+            == patch.rstrip()
+        )
 
     # Tests that handle_patch_deletions returns the modified patch when patch and patch_new are not equal
     def test_handle_patch_deletions_edge_case_patch_and_patch_new_are_not_equal(self):
-        patch = '--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar\n'
-        original_file_content_str = 'foo\nbar\n'
-        new_file_content_str = 'foo\nbaz\n'
-        file_name = 'file.py'
-        expected_patch = '--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar'
-        assert handle_patch_deletions(patch, original_file_content_str, new_file_content_str,
-                                      file_name) == expected_patch
+        patch = "--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar\n"
+        original_file_content_str = "foo\nbar\n"
+        new_file_content_str = "foo\nbaz\n"
+        file_name = "file.py"
+        expected_patch = "--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n-foo\n-bar"
+        assert (
+            handle_patch_deletions(
+                patch, original_file_content_str, new_file_content_str, file_name
+            )
+            == expected_patch
+        )

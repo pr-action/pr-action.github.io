@@ -1,5 +1,5 @@
 from pr_action.config_loader import get_settings
-from pr_action.git_providers import get_git_provider, GithubProvider
+from pr_action.git_providers import GithubProvider, get_git_provider
 from pr_action.log import get_logger
 
 
@@ -11,15 +11,21 @@ class PRHelpMessage:
         try:
             if not self.git_provider.is_supported("gfm_markdown"):
                 self.git_provider.publish_comment(
-                    "The `Help` tool requires gfm markdown, which is not supported by your code platform.")
+                    "The `Help` tool requires gfm markdown, which is not supported by your code platform."
+                )
                 return
 
-            get_logger().info('Getting PR Help Message...')
-            relevant_configs = {'pr_help': dict(get_settings().pr_help),
-                                'config': dict(get_settings().config)}
+            get_logger().info("Getting PR Help Message...")
+            relevant_configs = {
+                "pr_help": dict(get_settings().pr_help),
+                "config": dict(get_settings().config),
+            }
             get_logger().debug("Relevant configs", artifacts=relevant_configs)
             pr_comment = "## PR Action Walkthrough 🤖\n\n"
-            pr_comment += "Welcome to the PR Action, an AI-powered tool for automated pull request analysis, feedback, suggestions and more."""
+            pr_comment += (
+                "Welcome to the PR Action, an AI-powered tool for automated pull request analysis, feedback, suggestions and more."
+                ""
+            )
             pr_comment += "\n\nHere is a list of tools you can use to interact with the PR Action:\n"
             base_path = "https://pr-action-docs.khulnasoft.com/tools"
 
@@ -39,21 +45,37 @@ class PRHelpMessage:
             tool_names.append(f"[SIMILAR ISSUE]({base_path}/similar_issues/)")
 
             descriptions = []
-            descriptions.append("Generates PR description - title, type, summary, code walkthrough and labels")
-            descriptions.append("Adjustable feedback about the PR, possible issues, security concerns, review effort and more")
+            descriptions.append(
+                "Generates PR description - title, type, summary, code walkthrough and labels"
+            )
+            descriptions.append(
+                "Adjustable feedback about the PR, possible issues, security concerns, review effort and more"
+            )
             descriptions.append("Code suggestions for improving the PR")
             descriptions.append("Automatically updates the changelog")
-            descriptions.append("Generates documentation to methods/functions/classes that changed in the PR")
-            descriptions.append("Generates unit tests for a specific component, based on the PR code change")
-            descriptions.append("Code suggestions for a specific component that changed in the PR")
-            descriptions.append("Identifies code components that changed in the PR, and enables to interactively generate tests, docs, and code suggestions for each component")
+            descriptions.append(
+                "Generates documentation to methods/functions/classes that changed in the PR"
+            )
+            descriptions.append(
+                "Generates unit tests for a specific component, based on the PR code change"
+            )
+            descriptions.append(
+                "Code suggestions for a specific component that changed in the PR"
+            )
+            descriptions.append(
+                "Identifies code components that changed in the PR, and enables to interactively generate tests, docs, and code suggestions for each component"
+            )
             descriptions.append("Answering free-text questions about the PR")
-            descriptions.append("Generates custom labels for the PR, based on specific guidelines defined by the user")
+            descriptions.append(
+                "Generates custom labels for the PR, based on specific guidelines defined by the user"
+            )
             descriptions.append("Generates feedback and analysis for a failed CI job")
-            descriptions.append("Generates custom suggestions for improving the PR code, derived only from a specific guidelines prompt defined by the user")
+            descriptions.append(
+                "Generates custom suggestions for improving the PR code, derived only from a specific guidelines prompt defined by the user"
+            )
             descriptions.append("Automatically retrieves and presents similar issues")
 
-            commands  =[]
+            commands = []
             commands.append("`/describe`")
             commands.append("`/review`")
             commands.append("`/improve`")
@@ -86,7 +108,9 @@ class PRHelpMessage:
             checkbox_list.append("[*]")
             checkbox_list.append("[*]")
 
-            if isinstance(self.git_provider, GithubProvider) and not get_settings().config.get('disable_checkboxes', False):
+            if isinstance(
+                self.git_provider, GithubProvider
+            ) and not get_settings().config.get("disable_checkboxes", False):
                 pr_comment += f"<table><tr align='left'><th align='left'>Tool</th><th align='left'>Description</th><th align='left'>Trigger Interactively :gem:</th></tr>"
                 for i in range(len(tool_names)):
                     pr_comment += f"\n<tr><td align='left'>\n\n<strong>{tool_names[i]}</strong></td>\n<td>{descriptions[i]}</td>\n<td>\n\n{checkbox_list[i]}\n</td></tr>"
