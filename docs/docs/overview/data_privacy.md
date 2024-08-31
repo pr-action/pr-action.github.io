@@ -1,6 +1,6 @@
 ## Self-hosted PR-Action
 
-- If you host PR-Action with your OpenAI API key, it is between you and OpenAI. You can read their API data privacy policy here:
+- If you self-host PR-Action with your OpenAI (or other LLM provider) API key, it is between you and the provider. We don't send your code data to PR-Action servers.
 https://openai.com/enterprise-privacy
 
 ## PR-Action Pro 💎
