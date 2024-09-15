@@ -1,7 +1,7 @@
 ## Changing a model
 
-See [here](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/algo/__init__.py) for a list of available models.
-To use a different model than the default (GPT-4), you need to edit in the [configuration file](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml#L2) the fields:
+See [here](https://github.com/Pr-action/pr-action/blob/main/pr_action/algo/__init__.py) for a list of available models.
+To use a different model than the default (GPT-4), you need to edit in the [configuration file](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml#L2) the fields:
 ```
 [config]
 model = "..."
@@ -99,7 +99,7 @@ key = ...
 (you can obtain a Llama2 key from [here](https://replicate.com/replicate/llama-2-70b-chat/api))
 
 
-Also, review the [AiHandler](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/algo/ai_handler.py) file for instructions on how to set keys for other models.
+Also, review the [AiHandler](https://github.com/Pr-action/pr-action/blob/main/pr_action/algo/ai_handler.py) file for instructions on how to set keys for other models.
 
 ### Groq
 
@@ -172,7 +172,7 @@ AWS session is automatically authenticated from your environment, but you can al
 
 ### Custom models
 
-If the relevant model doesn't appear [here](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/algo/__init__.py), you can still use it as a custom model:
+If the relevant model doesn't appear [here](https://github.com/Pr-action/pr-action/blob/main/pr_action/algo/__init__.py), you can still use it as a custom model:
 
 (1) Set the model name in the configuration file:
 ```

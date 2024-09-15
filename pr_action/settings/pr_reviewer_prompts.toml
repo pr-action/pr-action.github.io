@@ -10,7 +10,13 @@ The review should focus on new code added in the PR code diff (lines starting wi
 
 The format we will use to present the PR code diff:
 ======
-## file: 'src/file1.py'
+## File: 'src/file1.py'
+{%- if is_ai_metadata %}
+### AI-generated changes summary:
+* ...
+* ...
+{%- endif %}
+
 
 @@ ... @@ def func1():
 __new hunk__
@@ -31,7 +37,7 @@ __old hunk__
 ...
 
 
-## file: 'src/file2.py'
+## File: 'src/file2.py'
 ...
 ======
 
@@ -39,13 +45,16 @@ __old hunk__
 - We also added line numbers for the '__new hunk__' code, to help you refer to the code lines in your suggestions. These line numbers are not part of the actual code, and should only used for reference.
 - Code lines are prefixed with symbols ('+', '-', ' '). The '+' symbol indicates new code added in the PR, the '-' symbol indicates code removed in the PR, and the ' ' symbol indicates unchanged code. \
  The review should address new code added in the PR code diff (lines starting with '+')
+{%- if is_ai_metadata %}
+- If available, an AI-generated summary will appear and provide a high-level overview of the file changes. Note that this summary may not be fully accurate or complete.
+{%- endif %}
 - When quoting variables or names from the code, use backticks (`) instead of single quote (').
 
 {%- if num_code_suggestions > 0 %}
 
 
 Code suggestions guidelines:
-- Provide up to {{ num_code_suggestions }} code suggestions. Try to provide diverse and actionful suggestions.
+- Provide up to {{ num_code_suggestions }} code suggestions. Try to provide diverse and insightful suggestions.
 - Focus on important suggestions like fixing code problems, issues and bugs. As a second priority, provide suggestions for meaningful code improvements, like performance, vulnerability, modularity, and best practices.
 - Avoid making suggestions that have already been implemented in the PR code. For example, if you want to add logs, or change a variable to const, or anything else, make sure it isn't already in the PR code.
 - Don't suggest to add docstring, type hints, or comments.
@@ -76,15 +85,6 @@ class KeyIssuesComponentLink(BaseModel):
     issue_content: str = Field(description="a short and concise description of the issue that needs to be reviewed")
     start_line: int = Field(description="the start line that corresponds to this issue in the relevant file")
     end_line: int = Field(description="the end line that corresponds to this issue in the relevant file")
-{%- if extra_issue_links %}
-    referenced_variables: List[Refs] = Field(description="a list of relevant variables or names that appear in the 'issue_content' output. For each variable, output is name, and the line number where it appears in the relevant file")
-{% endif %}
-
-{%- if extra_issue_links %}
-class Refs(BaseModel):
-    variable_name: str = Field(description="the name of a variable or name that appears in the relevant 'issue_content' output.")
-    relevant_line: int = Field(description="the line number where the variable or name appears in the relevant file")
-{%- endif %}
 
 class Review(BaseModel):
 {%- if require_estimate_effort_to_review %}
@@ -97,7 +97,7 @@ class Review(BaseModel):
     relevant_tests: str = Field(description="yes\\no question: does this PR have relevant tests added or updated ?")
 {%- endif %}
 {%- if question_str %}
-    actions_from_user_answers: str = Field(description="shortly summarize the actions you gained from the user's answers to the questions")
+    insights_from_user_answers: str = Field(description="shortly summarize the insights you gained from the user's answers to the questions")
 {%- endif %}
     key_issues_to_review: List[KeyIssuesComponentLink] = Field("A list of bugs, issue or major performance concerns introduced in this PR, which the PR reviewer should further investigate")
 {%- if require_security_review %}
@@ -149,12 +149,6 @@ review:
         ...
       start_line: 12
       end_line: 14
-{%- if extra_issue_links %}
-      referenced_variables:
-      - variable_name: |
-          ...
-        relevant_line: 13
-{%- endif %}
     - ...
   security_concerns: |
     No

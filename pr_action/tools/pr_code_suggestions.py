@@ -7,7 +7,8 @@ from jinja2 import Environment, StrictUndefined
 
 from pr_action.algo.ai_handlers.base_ai_handler import BaseAiHandler
 from pr_action.algo.ai_handlers.litellm_ai_handler import LiteLLMAIHandler
-from pr_action.algo.pr_processing import get_pr_diff, get_pr_multi_diffs, retry_with_fallback_models
+from pr_action.algo.pr_processing import get_pr_diff, get_pr_multi_diffs, retry_with_fallback_models, \
+    add_ai_metadata_to_diff_files
 from pr_action.algo.token_handler import TokenHandler
 from pr_action.algo.utils import load_yaml, replace_code_tags, ModelType, show_relevant_configurations
 from pr_action.config_loader import get_settings
@@ -54,16 +55,27 @@ class PRCodeSuggestions:
         self.prediction = None
         self.pr_url = pr_url
         self.cli_mode = cli_mode
+        self.pr_description, self.pr_description_files = (
+            self.git_provider.get_pr_description(split_changes_walkthrough=True))
+        if (self.pr_description_files and get_settings().get("config.is_auto_command", False) and
+                get_settings().get("config.enable_ai_metadata", False)):
+            add_ai_metadata_to_diff_files(self.git_provider, self.pr_description_files)
+            get_logger().debug(f"AI metadata added to the this command")
+        else:
+            get_settings().set("config.enable_ai_metadata", False)
+            get_logger().debug(f"AI metadata is disabled for this command")
+
         self.vars = {
             "title": self.git_provider.pr.title,
             "branch": self.git_provider.get_pr_branch(),
-            "description": self.git_provider.get_pr_description(),
+            "description": self.pr_description,
             "language": self.main_language,
             "diff": "",  # empty diff for initial calculation
             "num_code_suggestions": num_code_suggestions,
             "extra_instructions": get_settings().pr_code_suggestions.extra_instructions,
             "commit_messages_str": self.git_provider.get_commit_messages(),
             "relevant_best_practices": "",
+            "is_ai_metadata": get_settings().get("config.enable_ai_metadata", False),
         }
         if 'claude' in get_settings().config.model:
             # prompt for Claude, with minor adjustments
@@ -104,7 +116,8 @@ class PRCodeSuggestions:
             if not data:
                 data = {"code_suggestions": []}
 
-            if data is None or 'code_suggestions' not in data or not data['code_suggestions']:
+            if (data is None or 'code_suggestions' not in data or not data['code_suggestions']
+                    and get_settings().config.publish_output):
                 get_logger().warning('No code suggestions found for the PR.')
                 pr_body = "## PR Code Suggestions ✨\n\nNo code suggestions found for the PR."
                 get_logger().debug(f"PR output", artifact=pr_body)
@@ -168,6 +181,15 @@ class PRCodeSuggestions:
                 get_logger().info('Code suggestions generated for PR, but not published since publish_output is False.')
         except Exception as e:
             get_logger().error(f"Failed to generate code suggestions for PR, error: {e}")
+            if get_settings().config.publish_output:
+                if self.progress_response:
+                    self.progress_response.delete()
+                else:
+                    try:
+                        self.git_provider.remove_initial_comment()
+                        self.git_provider.publish_comment(f"Failed to generate code suggestions for PR")
+                    except Exception as e:
+                        pass
 
     def publish_persistent_comment_with_history(self, pr_comment: str,
                                                 initial_header: str,
@@ -518,7 +540,7 @@ class PRCodeSuggestions:
                     for i, prediction in enumerate(predictions["code_suggestions"]):
                         try:
                             if get_settings().pr_code_suggestions.self_reflect_on_suggestions:
-                                score = int(prediction["score"])
+                                score = int(prediction.get("score", 1))
                                 if score >= score_threshold:
                                     data["code_suggestions"].append(prediction)
                                 else:

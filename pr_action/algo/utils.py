@@ -1,4 +1,5 @@
 from __future__ import annotations
+import html2text
 
 import html
 import copy
@@ -106,7 +107,7 @@ def convert_to_markdown_v2(output_data: dict,
         "Focused PR": "✨",
         "Relevant ticket": "🎫",
         "Security concerns": "🔒",
-        "Actions from user's answers": "📝",
+        "Insights from user's answers": "📝",
         "Code feedback": "🤖",
         "Estimated effort to review [1-5]": "⏱️",
     }
@@ -214,19 +215,6 @@ def convert_to_markdown_v2(output_data: dict,
                         reference_link = git_provider.get_line_link(relevant_file, start_line, end_line)
 
                         if gfm_supported:
-                            if get_settings().pr_reviewer.extra_issue_links:
-                                issue_content_linked =copy.deepcopy(issue_content)
-                                referenced_variables_list = issue.get('referenced_variables', [])
-                                for component in referenced_variables_list:
-                                    name = component['variable_name'].strip().strip('`')
-
-                                    ind = issue_content.find(name)
-                                    if ind != -1:
-                                        reference_link_component = git_provider.get_line_link(relevant_file, component['relevant_line'], component['relevant_line'])
-                                        issue_content_linked = issue_content_linked[:ind-1] + f"[`{name}`]({reference_link_component})" + issue_content_linked[ind+len(name)+1:]
-                                    else:
-                                        get_logger().info(f"Failed to find variable in issue content: {component['variable_name'].strip()}")
-                                issue_content = issue_content_linked
                             issue_str = f"<a href='{reference_link}'><strong>{issue_header}</strong></a><br>{issue_content}"
                         else:
                             issue_str = f"[**{issue_header}**]({reference_link})\n\n{issue_content}\n\n"
@@ -917,21 +905,24 @@ def github_action_output(output_data: dict, key_name: str):
 
 
 def show_relevant_configurations(relevant_section: str) -> str:
-    forbidden_keys = ['ai_disclaimer', 'ai_disclaimer_title', 'ANALYTICS_FOLDER', 'secret_provider',
+    skip_keys = ['ai_disclaimer', 'ai_disclaimer_title', 'ANALYTICS_FOLDER', 'secret_provider', "skip_keys",
                       'trial_prefix_message', 'no_eligible_message', 'identity_provider', 'ALLOWED_REPOS','APP_NAME']
+    extra_skip_keys = get_settings().config.get('config.skip_keys', [])
+    if extra_skip_keys:
+        skip_keys.extend(extra_skip_keys)
 
     markdown_text = ""
     markdown_text += "\n<hr>\n<details> <summary><strong>🛠️ Relevant configurations:</strong></summary> \n\n"
-    markdown_text +="<br>These are the relevant [configurations](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml) for this tool:\n\n"
+    markdown_text +="<br>These are the relevant [configurations](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml) for this tool:\n\n"
     markdown_text += f"**[config**]\n```yaml\n\n"
     for key, value in get_settings().config.items():
-        if key in forbidden_keys:
+        if key in skip_keys:
             continue
         markdown_text += f"{key}: {value}\n"
     markdown_text += "\n```\n"
     markdown_text += f"\n**[{relevant_section}]**\n```yaml\n\n"
     for key, value in get_settings().get(relevant_section, {}).items():
-        if key in forbidden_keys:
+        if key in skip_keys:
             continue
         markdown_text += f"{key}: {value}\n"
     markdown_text += "\n```"
@@ -945,3 +936,73 @@ def is_value_no(value):
     if value_str == 'no' or value_str == 'none' or value_str == 'false':
         return True
     return False
+
+
+def process_description(description_full: str) -> Tuple[str, List]:
+    if not description_full:
+        return "", []
+
+    split_str = "### **Changes walkthrough** 📝"
+    description_split = description_full.split(split_str)
+    base_description_str = description_split[0]
+    changes_walkthrough_str = ""
+    files = []
+    if len(description_split) > 1:
+        changes_walkthrough_str = description_split[1]
+    else:
+        get_logger().debug("No changes walkthrough found")
+
+    try:
+        if changes_walkthrough_str:
+            # get the end of the table
+            if '</table>\n\n___' in changes_walkthrough_str:
+                end = changes_walkthrough_str.index("</table>\n\n___")
+            elif '\n___' in changes_walkthrough_str:
+                end = changes_walkthrough_str.index("\n___")
+            else:
+                end = len(changes_walkthrough_str)
+            changes_walkthrough_str = changes_walkthrough_str[:end]
+
+            h = html2text.HTML2Text()
+            h.body_width = 0  # Disable line wrapping
+
+            # find all the files
+            pattern = r'<tr>\s*<td>\s*(<details>\s*<summary>(.*?)</summary>(.*?)</details>)\s*</td>'
+            files_found = re.findall(pattern, changes_walkthrough_str, re.DOTALL)
+            for file_data in files_found:
+                try:
+                    if isinstance(file_data, tuple):
+                        file_data = file_data[0]
+                    pattern = r'<details>\s*<summary><strong>(.*?)</strong>\s*<dd><code>(.*?)</code>.*?</summary>\s*<hr>\s*(.*?)\s*<li>(.*?)</details>'
+                    res = re.search(pattern, file_data, re.DOTALL)
+                    if not res or res.lastindex != 4:
+                        pattern_back = r'<details>\s*<summary><strong>(.*?)</strong><dd><code>(.*?)</code>.*?</summary>\s*<hr>\s*(.*?)\n\n\s*(.*?)</details>'
+                        res = re.search(pattern_back, file_data, re.DOTALL)
+                    if res and res.lastindex == 4:
+                        short_filename = res.group(1).strip()
+                        short_summary = res.group(2).strip()
+                        long_filename = res.group(3).strip()
+                        long_summary =  res.group(4).strip()
+                        long_summary = long_summary.replace('<br> *', '\n*').replace('<br>','').replace('\n','<br>')
+                        long_summary = h.handle(long_summary).strip()
+                        if long_summary.startswith('\\-'):
+                            long_summary = "* " + long_summary[2:]
+                        elif not long_summary.startswith('*'):
+                            long_summary = f"* {long_summary}"
+
+                        files.append({
+                            'short_file_name': short_filename,
+                            'full_file_name': long_filename,
+                            'short_summary': short_summary,
+                            'long_summary': long_summary
+                        })
+                    else:
+                        get_logger().error(f"Failed to parse description", artifact={'description': file_data})
+                except Exception as e:
+                    get_logger().exception(f"Failed to process description: {e}", artifact={'description': file_data})
+
+
+    except Exception as e:
+        get_logger().exception(f"Failed to process description: {e}")
+
+    return base_description_str, files

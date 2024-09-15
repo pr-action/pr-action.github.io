@@ -48,25 +48,25 @@ PR-Action offers extensive pull request functionalities across various git provi
 ## Example Results
 <hr>
 
-#### [/describe](https://github.com/KhulnaSoft/pr-action/pull/530)
+#### [/describe](https://github.com/Pr-action/pr-action/pull/530)
 <figure markdown="1">
 ![/describe](https://www.khulnasoft.com/images/pr_action/describe_new_short_main.png){width=512}
 </figure>
 <hr>
 
-#### [/review](https://github.com/KhulnaSoft/pr-action/pull/732#issuecomment-1975099151)
+#### [/review](https://github.com/Pr-action/pr-action/pull/732#issuecomment-1975099151)
 <figure markdown="1">
 ![/review](https://www.khulnasoft.com/images/pr_action/review_new_short_main.png){width=512}
 </figure>
 <hr>
 
-#### [/improve](https://github.com/KhulnaSoft/pr-action/pull/732#issuecomment-1975099159)
+#### [/improve](https://github.com/Pr-action/pr-action/pull/732#issuecomment-1975099159)
 <figure markdown="1">
 ![/improve](https://www.khulnasoft.com/images/pr_action/improve_new_short_main.png){width=512}
 </figure>
 <hr>
 
-#### [/generate_labels](https://github.com/KhulnaSoft/pr-action/pull/530)
+#### [/generate_labels](https://github.com/Pr-action/pr-action/pull/530)
 <figure markdown="1">
 ![/generate_labels](https://www.khulnasoft.com/images/pr_action/geneare_custom_labels_main_short.png){width=300}
 </figure>
@@ -78,4 +78,4 @@ The following diagram illustrates PR-Action tools and their flow:
 
 ![PR-Action Tools](https://khulnasoft.com/images/pr_action/diagram-v0.9.png)
 
-Check out the [PR Compression strategy](core-abilities/index.md) page for more details on how we convert a code diff to a manageable LLM prompt
+Check out the [core abilities](core-abilities/index.md) page for a comprehensive overview of the variety of core abilities used by PR-Action.

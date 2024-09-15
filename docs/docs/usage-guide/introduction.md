@@ -2,7 +2,7 @@
 After [installation](https://pr-action-docs.khulnasoft.com/installation/), there are three basic ways to invoke KhulnaSoft PR-Action:
 
 1. Locally running a CLI command
-2. Online usage - by [commenting](https://github.com/KhulnaSoft/pr-action/pull/229#issuecomment-1695021901) on a PR
+2. Online usage - by [commenting](https://github.com/Pr-action/pr-action/pull/229#issuecomment-1695021901) on a PR
 3. Enabling PR-Action tools to run automatically when a new PR is opened
 
 
