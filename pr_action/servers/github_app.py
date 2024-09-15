@@ -12,7 +12,7 @@ from starlette.middleware import Middleware
 from starlette_context import context
 from starlette_context.middleware import RawContextMiddleware
 
-from pr_action.agent.pr_action import PRAction
+from pr_action.action.pr_action import PRAction
 from pr_action.algo.utils import update_settings_from_args
 from pr_action.config_loader import get_settings, global_settings
 from pr_action.git_providers import get_git_provider, get_git_provider_with_context
@@ -82,7 +82,7 @@ async def handle_comments_on_pr(body: Dict[str, Any],
                                 sender_id: str,
                                 action: str,
                                 log_context: Dict[str, Any],
-                                agent: PRAction):
+                                action: PRAction):
     if "comment" not in body:
         return {}
     comment_body = body.get("comment", {}).get("body")
@@ -115,7 +115,7 @@ async def handle_comments_on_pr(body: Dict[str, Any],
     with get_logger().contextualize(**log_context):
         if get_identity_provider().verify_eligibility("github", sender_id, api_url) is not Eligibility.NOT_ELIGIBLE:
             get_logger().info(f"Processing comment on PR {api_url=}, comment_body={comment_body}")
-            await agent.handle_request(api_url, comment_body,
+            await action.handle_request(api_url, comment_body,
                         notify=lambda: provider.add_eyes_reaction(comment_id, disable_eyes=disable_eyes))
         else:
             get_logger().info(f"User {sender=} is not eligible to process comment on PR {api_url=}")
@@ -126,27 +126,18 @@ async def handle_new_pr_opened(body: Dict[str, Any],
                                sender_id: str,
                                action: str,
                                log_context: Dict[str, Any],
-                               agent: PRAction):
+                               action: PRAction):
     title = body.get("pull_request", {}).get("title", "")
-    get_settings().config.is_auto_command = True
-
 
     pull_request, api_url = _check_pull_request_event(action, body, log_context)
     if not (pull_request and api_url):
         get_logger().info(f"Invalid PR event: {action=} {api_url=}")
         return {}
-    if action in get_settings().github_app.handle_actions:  # ['opened', 'reopened', 'ready_for_review']
+    if action in get_settings().github_app.handle_pr_actions:  # ['opened', 'reopened', 'ready_for_review']
         # logic to ignore PRs with specific titles (e.g. "[Auto] ...")
         apply_repo_settings(api_url)
-        ignore_pr_title_re = get_settings().get("GITHUB_APP.IGNORE_PR_TITLE", [])
-        if not isinstance(ignore_pr_title_re, list):
-            ignore_pr_title_re = [ignore_pr_title_re]
-        if ignore_pr_title_re and any(re.search(regex, title) for regex in ignore_pr_title_re):
-            get_logger().info(f"Ignoring PR with title '{title}' due to github_app.ignore_pr_title setting")
-            return {}
-
         if get_identity_provider().verify_eligibility("github", sender_id, api_url) is not Eligibility.NOT_ELIGIBLE:
-                await _perform_auto_commands_github("pr_commands", agent, body, api_url, log_context)
+                await _perform_auto_commands_github("pr_commands", action, body, api_url, log_context)
         else:
             get_logger().info(f"User {sender=} is not eligible to process PR {api_url=}")
 
@@ -156,7 +147,7 @@ async def handle_push_trigger_for_new_commits(body: Dict[str, Any],
                         sender_id: str,
                         action: str,
                         log_context: Dict[str, Any],
-                        agent: PRAction):
+                        action: PRAction):
     pull_request, api_url = _check_pull_request_event(action, body, log_context)
     if not (pull_request and api_url):
         return {}
@@ -205,7 +196,7 @@ async def handle_push_trigger_for_new_commits(body: Dict[str, Any],
     try:
         if get_identity_provider().verify_eligibility("github", sender_id, api_url) is not Eligibility.NOT_ELIGIBLE:
                 get_logger().info(f"Performing incremental review for {api_url=} because of {event=} and {action=}")
-                await _perform_auto_commands_github("push_commands", agent, body, api_url, log_context)
+                await _perform_auto_commands_github("push_commands", action, body, api_url, log_context)
 
     finally:
         # release the waiting task block
@@ -246,6 +237,60 @@ def get_log_context(body, event, action, build_number):
     return log_context, sender, sender_id, sender_type
 
 
+def is_bot_user(sender, sender_type):
+    try:
+        # logic to ignore PRs opened by bot
+        if get_settings().get("GITHUB_APP.IGNORE_BOT_PR", False) and sender_type == "Bot":
+            if 'pr-action' not in sender:
+                get_logger().info(f"Ignoring PR from '{sender=}' because it is a bot")
+            return True
+    except Exception as e:
+        get_logger().error(f"Failed 'is_bot_user' logic: {e}")
+    return False
+
+
+def should_process_pr_logic(sender_type, sender, body) -> bool:
+    try:
+        pull_request = body.get("pull_request", {})
+        title = pull_request.get("title", "")
+        pr_labels = pull_request.get("labels", [])
+        source_branch = pull_request.get("head", {}).get("ref", "")
+        target_branch = pull_request.get("base", {}).get("ref", "")
+
+        # logic to ignore PRs with specific titles
+        if title:
+            ignore_pr_title_re = get_settings().get("CONFIG.IGNORE_PR_TITLE", [])
+            if not isinstance(ignore_pr_title_re, list):
+                ignore_pr_title_re = [ignore_pr_title_re]
+            if ignore_pr_title_re and any(re.search(regex, title) for regex in ignore_pr_title_re):
+                get_logger().info(f"Ignoring PR with title '{title}' due to config.ignore_pr_title setting")
+                return False
+
+        # logic to ignore PRs with specific labels or source branches or target branches.
+        ignore_pr_labels = get_settings().get("CONFIG.IGNORE_PR_LABELS", [])
+        if pr_labels and ignore_pr_labels:
+            labels = [label['name'] for label in pr_labels]
+            if any(label in ignore_pr_labels for label in labels):
+                labels_str = ", ".join(labels)
+                get_logger().info(f"Ignoring PR with labels '{labels_str}' due to config.ignore_pr_labels settings")
+                return False
+
+        ignore_pr_source_branches = get_settings().get("CONFIG.IGNORE_PR_SOURCE_BRANCHES", [])
+        ignore_pr_target_branches = get_settings().get("CONFIG.IGNORE_PR_TARGET_BRANCHES", [])
+        if pull_request and (ignore_pr_source_branches or ignore_pr_target_branches):
+            if any(re.search(regex, source_branch) for regex in ignore_pr_source_branches):
+                get_logger().info(
+                    f"Ignoring PR with source branch '{source_branch}' due to config.ignore_pr_source_branches settings")
+                return False
+            if any(re.search(regex, target_branch) for regex in ignore_pr_target_branches):
+                get_logger().info(
+                    f"Ignoring PR with target branch '{target_branch}' due to config.ignore_pr_target_branches settings")
+                return False
+    except Exception as e:
+        get_logger().error(f"Failed 'should_process_pr_logic': {e}")
+    return True
+
+
 async def handle_request(body: Dict[str, Any], event: str):
     """
     Handle incoming GitHub webhook requests.
@@ -254,35 +299,35 @@ async def handle_request(body: Dict[str, Any], event: str):
         body: The request body.
         event: The GitHub event type (e.g. "pull_request", "issue_comment", etc.).
     """
-    action = body.get("action") # "created", "opened", "reopened", "ready_for_review", "review_requested", "synchronize"
+    action = body.get("action")  # "created", "opened", "reopened", "ready_for_review", "review_requested", "synchronize"
     if not action:
         return {}
-    agent = PRAction()
+    action = PRAction()
     log_context, sender, sender_id, sender_type = get_log_context(body, event, action, build_number)
 
-    # logic to ignore PRs opened by bot
-    if get_settings().get("GITHUB_APP.IGNORE_BOT_PR", False) and sender_type == "Bot":
-        if 'pr-action' not in sender:
-            get_logger().info(f"Ignoring PR from '{sender=}' because it is a bot")
+    # logic to ignore PRs opened by bot, PRs with specific titles, labels, source branches, or target branches
+    if is_bot_user(sender, sender_type):
         return {}
+    if action != 'created' and 'check_run' not in body:
+        if not should_process_pr_logic(sender_type, sender, body):
+            return {}
 
-    if 'check_run' in body: # handle failed checks
+    if 'check_run' in body:  # handle failed checks
         # get_logger().debug(f'Request body', artifact=body, event=event) # added inside handle_checks
         pass
     # handle comments on PRs
     elif action == 'created':
         get_logger().debug(f'Request body', artifact=body, event=event)
-        await handle_comments_on_pr(body, event, sender, sender_id, action, log_context, agent)
+        await handle_comments_on_pr(body, event, sender, sender_id, action, log_context, action)
     # handle new PRs
     elif event == 'pull_request' and action != 'synchronize' and action != 'closed':
         get_logger().debug(f'Request body', artifact=body, event=event)
-        await handle_new_pr_opened(body, event, sender, sender_id, action, log_context, agent)
+        await handle_new_pr_opened(body, event, sender, sender_id, action, log_context, action)
     elif event == "issue_comment" and 'edited' in action:
         pass # handle_checkbox_clicked
     # handle pull_request event with synchronize action - "push trigger" for new commits
     elif event == 'pull_request' and action == 'synchronize':
-        # get_logger().debug(f'Request body', artifact=body, event=event) # added inside handle_push_trigger_for_new_commits
-        await handle_push_trigger_for_new_commits(body, event, sender,sender_id,  action, log_context, agent)
+        await handle_push_trigger_for_new_commits(body, event, sender,sender_id,  action, log_context, action)
     elif event == 'pull_request' and action == 'closed':
         if get_settings().get("CONFIG.ANALYTICS_FOLDER", ""):
             handle_closed_pr(body, event, action, log_context)
@@ -325,12 +370,14 @@ def _check_pull_request_event(action: str, body: dict, log_context: dict) -> Tup
     return pull_request, api_url
 
 
-async def _perform_auto_commands_github(commands_conf: str, agent: PRAction, body: dict, api_url: str, log_context: dict):
+async def _perform_auto_commands_github(commands_conf: str, action: PRAction, body: dict, api_url: str,
+                                        log_context: dict):
     apply_repo_settings(api_url)
     commands = get_settings().get(f"github_app.{commands_conf}")
     if not commands:
         get_logger().info(f"New PR, but no auto commands configured")
         return
+    get_settings().set("config.is_auto_command", True)
     for command in commands:
         split_command = command.split(" ")
         command = split_command[0]
@@ -338,7 +385,7 @@ async def _perform_auto_commands_github(commands_conf: str, agent: PRAction, bod
         other_args = update_settings_from_args(args)
         new_command = ' '.join([command] + other_args)
         get_logger().info(f"{commands_conf}. Performing auto command '{new_command}', for {api_url=}")
-        await agent.handle_request(api_url, new_command)
+        await action.handle_request(api_url, new_command)
 
 
 @router.get("/")

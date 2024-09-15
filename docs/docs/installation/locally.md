@@ -19,7 +19,7 @@ def main():
     provider = "github" # GitHub provider
     user_token = "..."  # GitHub user token
     openai_key = "..."  # OpenAI key
-    pr_url = "..."      # PR URL, for example 'https://github.com/KhulnaSoft/pr-action/pull/809'
+    pr_url = "..."      # PR URL, for example 'https://github.com/Pr-action/pr-action/pull/809'
     command = "/review" # Command to run (e.g. '/review', '/describe', '/ask="What is the purpose of this PR?"', ...)
 
     # Setting the configurations
@@ -71,7 +71,7 @@ If you want to ensure you're running a specific version of the Docker image, con
 docker run --rm -it -e OPENAI.KEY=<your key> -e GITHUB.USER_TOKEN=<your token> khulnasoft/pr-action@sha256:71b5ee15df59c745d352d84752d01561ba64b6d51327f97d46152f0c58a5f678 --pr_url <pr_url> review
 ```
 
-Or you can run a [specific released versions](https://github.com/KhulnaSoft/pr-action/blob/main/RELEASE_NOTES.md) of pr-action, for example:
+Or you can run a [specific released versions](https://github.com/Pr-action/pr-action/blob/main/RELEASE_NOTES.md) of pr-action, for example:
 ```
 khulnasoft/pr-action@v0.9
 ```
@@ -83,7 +83,7 @@ khulnasoft/pr-action@v0.9
 1. Clone this repository:
 
 ```
-git clone https://github.com/KhulnaSoft/pr-action.git
+git clone https://github.com/Pr-action/pr-action.git
 ```
 
 2. Navigate to the `/pr-action` folder and install the requirements in your favorite virtual environment:

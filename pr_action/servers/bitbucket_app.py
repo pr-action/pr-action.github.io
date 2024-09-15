@@ -3,6 +3,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 import time
 
 import jwt
@@ -15,7 +16,7 @@ from starlette.responses import JSONResponse
 from starlette_context import context
 from starlette_context.middleware import RawContextMiddleware
 
-from pr_action.agent.pr_action import PRAction
+from pr_action.action.pr_action import PRAction
 from pr_action.algo.utils import update_settings_from_args
 from pr_action.config_loader import get_settings, global_settings
 from pr_action.git_providers.utils import apply_repo_settings
@@ -74,9 +75,10 @@ async def handle_manifest(request: Request, response: Response):
     return JSONResponse(manifest_obj)
 
 
-async def _perform_commands_bitbucket(commands_conf: str, agent: PRAction, api_url: str, log_context: dict):
+async def _perform_commands_bitbucket(commands_conf: str, action: PRAction, api_url: str, log_context: dict):
     apply_repo_settings(api_url)
     commands = get_settings().get(f"bitbucket_app.{commands_conf}", {})
+    get_settings().set("config.is_auto_command", True)
     for command in commands:
         try:
             split_command = command.split(" ")
@@ -86,9 +88,51 @@ async def _perform_commands_bitbucket(commands_conf: str, agent: PRAction, api_u
             new_command = ' '.join([command] + other_args)
             get_logger().info(f"Performing command: {new_command}")
             with get_logger().contextualize(**log_context):
-                await agent.handle_request(api_url, new_command)
+                await action.handle_request(api_url, new_command)
         except Exception as e:
             get_logger().error(f"Failed to perform command {command}: {e}")
+
+
+def is_bot_user(data) -> bool:
+    try:
+        if data["data"]["actor"]["type"] != "user":
+            get_logger().info(f"BitBucket actor type is not 'user': {data['data']['actor']['type']}")
+            return True
+    except Exception as e:
+        get_logger().error("Failed 'is_bot_user' logic: {e}")
+    return False
+
+
+def should_process_pr_logic(data) -> bool:
+    try:
+        pr_data = data.get("data", {}).get("pullrequest", {})
+        title = pr_data.get("title", "")
+        source_branch = pr_data.get("source", {}).get("branch", {}).get("name", "")
+        target_branch = pr_data.get("destination", {}).get("branch", {}).get("name", "")
+
+        # logic to ignore PRs with specific titles
+        if title:
+            ignore_pr_title_re = get_settings().get("CONFIG.IGNORE_PR_TITLE", [])
+            if not isinstance(ignore_pr_title_re, list):
+                ignore_pr_title_re = [ignore_pr_title_re]
+            if ignore_pr_title_re and any(re.search(regex, title) for regex in ignore_pr_title_re):
+                get_logger().info(f"Ignoring PR with title '{title}' due to config.ignore_pr_title setting")
+                return False
+
+        ignore_pr_source_branches = get_settings().get("CONFIG.IGNORE_PR_SOURCE_BRANCHES", [])
+        ignore_pr_target_branches = get_settings().get("CONFIG.IGNORE_PR_TARGET_BRANCHES", [])
+        if (ignore_pr_source_branches or ignore_pr_target_branches):
+            if any(re.search(regex, source_branch) for regex in ignore_pr_source_branches):
+                get_logger().info(
+                    f"Ignoring PR with source branch '{source_branch}' due to config.ignore_pr_source_branches settings")
+                return False
+            if any(re.search(regex, target_branch) for regex in ignore_pr_target_branches):
+                get_logger().info(
+                    f"Ignoring PR with target branch '{target_branch}' due to config.ignore_pr_target_branches settings")
+                return False
+    except Exception as e:
+        get_logger().error(f"Failed 'should_process_pr_logic': {e}")
+    return True
 
 
 @router.post("/webhook")
@@ -101,13 +145,17 @@ async def handle_github_webhooks(background_tasks: BackgroundTasks, request: Req
         input_jwt = jwt_header.split(" ")[1]
     data = await request.json()
     get_logger().debug(data)
+
     async def inner():
         try:
-            try:
-                if data["data"]["actor"]["type"] != "user":
+            # ignore bot users
+            if is_bot_user(data):
+                return "OK"
+
+            # Check if the PR should be processed
+            if data.get("event", "") == "pullrequest:created":
+                if not should_process_pr_logic(data):
                     return "OK"
-            except KeyError:
-                get_logger().error("Failed to get actor type, check previous logs, this shouldn't happen.")
 
             # Get the username of the sender
             try:
@@ -134,7 +182,7 @@ async def handle_github_webhooks(background_tasks: BackgroundTasks, request: Req
             context['bitbucket_bearer_token'] = bearer_token
             context["settings"] = copy.deepcopy(global_settings)
             event = data["event"]
-            agent = PRAction()
+            action = PRAction()
             if event == "pullrequest:created":
                 pr_url = data["data"]["pullrequest"]["links"]["html"]["href"]
                 log_context["api_url"] = pr_url
@@ -146,16 +194,6 @@ async def handle_github_webhooks(background_tasks: BackgroundTasks, request: Req
                                                         sender_id, pr_url) is not Eligibility.NOT_ELIGIBLE:
                             if get_settings().get("bitbucket_app.pr_commands"):
                                 await _perform_commands_bitbucket("pr_commands", PRAction(), pr_url, log_context)
-                            else: # backwards compatibility
-                                auto_review = get_setting_or_env("BITBUCKET_APP.AUTO_REVIEW", None)
-                                if is_true(auto_review):  # by default, auto review is disabled
-                                    await PRReviewer(pr_url).run()
-                                auto_improve = get_setting_or_env("BITBUCKET_APP.AUTO_IMPROVE", None)
-                                if is_true(auto_improve):  # by default, auto improve is disabled
-                                    await PRCodeSuggestions(pr_url).run()
-                                auto_describe = get_setting_or_env("BITBUCKET_APP.AUTO_DESCRIBE", None)
-                                if is_true(auto_describe):  # by default, auto describe is disabled
-                                    await PRDescription(pr_url).run()
             elif event == "pullrequest:comment_created":
                 pr_url = data["data"]["pullrequest"]["links"]["html"]["href"]
                 log_context["api_url"] = pr_url
@@ -164,7 +202,7 @@ async def handle_github_webhooks(background_tasks: BackgroundTasks, request: Req
                 with get_logger().contextualize(**log_context):
                     if get_identity_provider().verify_eligibility("bitbucket",
                                                                      sender_id, pr_url) is not Eligibility.NOT_ELIGIBLE:
-                        await agent.handle_request(pr_url, comment_body)
+                        await action.handle_request(pr_url, comment_body)
         except Exception as e:
             get_logger().error(f"Failed to handle webhook: {e}")
     background_tasks.add_task(inner)

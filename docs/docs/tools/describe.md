@@ -77,7 +77,7 @@ publish_labels = ...
   </tr>
   <tr>
     <td><b>final_update_message</b></td>
-    <td>If set to true, it will add a comment message [`PR Description updated to latest commit...`](https://github.com/KhulnaSoft/pr-action/pull/499#issuecomment-1837412176) after finishing calling `/describe`. Default is false.</td>
+    <td>If set to true, it will add a comment message [`PR Description updated to latest commit...`](https://github.com/Pr-action/pr-action/pull/499#issuecomment-1837412176) after finishing calling `/describe`. Default is false.</td>
   </tr>
   <tr>
     <td><b>enable_semantic_files_types</b></td>

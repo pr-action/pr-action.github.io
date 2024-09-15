@@ -7,7 +7,7 @@ def main():
     provider = "github"  # GitHub provider
     user_token = "..."  # GitHub user token
     openai_key = "..."  # OpenAI key
-    pr_url = "..."  # PR URL, for example 'https://github.com/KhulnaSoft/pr-action/pull/809'
+    pr_url = "..."  # PR URL, for example 'https://github.com/Pr-action/pr-action/pull/809'
     command = "/review"  # Command to run (e.g. '/review', '/describe', '/ask="What is the purpose of this PR?"')
 
     # Setting the configurations

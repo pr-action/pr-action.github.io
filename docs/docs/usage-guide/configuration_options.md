@@ -1,7 +1,7 @@
-The different tools and sub-tools used by KhulnaSoft PR-Action are adjustable via the **[configuration file](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml)**.
+The different tools and sub-tools used by KhulnaSoft PR-Action are adjustable via the **[configuration file](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml)**.
 
-In addition to general configuration options, each tool has its own configurations. For example, the `review` tool will use parameters from the [pr_reviewer](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml#L16) section in the configuration file.
-See the [Tools Guide](https://khulnasoft.github.io/Docs-PR-Action/tools/) for a detailed description of the different tools and their configurations.
+In addition to general configuration options, each tool has its own configurations. For example, the `review` tool will use parameters from the [pr_reviewer](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml#L16) section in the configuration file.
+See the [Tools Guide](https://pr-action.github.io/Docs-PR-Action/tools/) for a detailed description of the different tools and their configurations.
 
 There are three ways to set persistent configurations:
 
@@ -20,7 +20,7 @@ In terms of precedence, wiki configurations will override local configurations, 
 
 `Platforms supported: GitHub, GitLab`
 
-With PR-Action-Pro, you can set configurations by creating a page called `.pr_action.toml` in the [wiki](https://github.com/KhulnaSoft/pr-action/wiki/pr_action.toml) of the repo. 
+With PR-Action-Pro, you can set configurations by creating a page called `.pr_action.toml` in the [wiki](https://github.com/Pr-action/pr-action/wiki/pr_action.toml) of the repo. 
 The advantage of this method is that it allows to set configurations without needing to commit new content to the repo - just edit the wiki page and **save**.
 
 
@@ -64,8 +64,8 @@ Then you can give a list of extra instructions to the `review` tool.
 If you create a repo called `pr-action-settings` in your **organization**, it's configuration file `.pr_action.toml` will be used as a global configuration file for any other repo that belongs to the same organization.
 Parameters from a local `.pr_action.toml` file, in a specific repo, will override the global configuration parameters.
 
-For example, in the GitHub organization `KhulnaSoft`:
+For example, in the GitHub organization `Pr-action`:
 
-- The file [`https://github.com/KhulnaSoft/pr-action-settings/.pr_action.toml`](https://github.com/KhulnaSoft/pr-action-settings/blob/main/.pr_action.toml)  serves as a global configuration file for all the repos in the GitHub organization `KhulnaSoft`.
+- The file [`https://github.com/Pr-action/pr-action-settings/.pr_action.toml`](https://github.com/Pr-action/pr-action-settings/blob/main/.pr_action.toml)  serves as a global configuration file for all the repos in the GitHub organization `Pr-action`.
 
-- The repo [`https://github.com/KhulnaSoft/pr-action`](https://github.com/KhulnaSoft/pr-action/blob/main/.pr_action.toml) inherits the global configuration file from `pr-action-settings`.
+- The repo [`https://github.com/Pr-action/pr-action`](https://github.com/Pr-action/pr-action/blob/main/.pr_action.toml) inherits the global configuration file from `pr-action-settings`.

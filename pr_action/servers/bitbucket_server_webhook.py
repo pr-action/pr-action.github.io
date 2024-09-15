@@ -12,7 +12,7 @@ from starlette.middleware import Middleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette_context.middleware import RawContextMiddleware
-from pr_action.agent.pr_action import PRAction
+from pr_action.action.pr_action import PRAction
 from pr_action.algo.utils import update_settings_from_args
 from pr_action.config_loader import get_settings
 from pr_action.git_providers.utils import apply_repo_settings

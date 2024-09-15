@@ -1,7 +1,6 @@
 ## Self-hosted PR-Action
 
 - If you self-host PR-Action with your OpenAI (or other LLM provider) API key, it is between you and the provider. We don't send your code data to PR-Action servers.
-https://openai.com/enterprise-privacy
 
 ## PR-Action Pro 💎
 
@@ -14,4 +13,4 @@ https://openai.com/enterprise-privacy
 
 ## PR-Action Chrome extension
 
-- The [PR-Action Chrome extension](https://chromewebstore.google.com/detail/pr-action-chrome-extension/ephlnjeghhogofkifjloamocljapahnl) serves solely to modify the visual appearance of a GitHub PR screen. It does not transmit any user's repo or pull request code. Code is only sent for processing when a user submits a GitHub comment that activates a PR-Action tool, in accordance with the standard privacy policy of PR-Action.
+- The [PR-Action Chrome extension](https://chromewebstore.google.com/detail/pr-action-chrome-extension/ephlnjeghhogofkifjloamocljapahnl) will not send your code to any external servers.

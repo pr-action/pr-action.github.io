@@ -14,6 +14,7 @@ use_wiki_settings_file=true
 use_repo_settings_file=true
 use_global_settings_file=true
 ai_timeout=120 # 2minutes
+skip_keys = []
 # token limits
 max_description_tokens = 500
 max_commits_tokens = 500
@@ -21,8 +22,8 @@ max_model_tokens = 32000 # Limits the maximum number of tokens that can be used 
 custom_model_max_tokens=-1 # for models not in the default list
 # patch extension logic
 patch_extension_skip_types =[".md",".txt"]
-allow_dynamic_context=false
-max_extra_lines_before_dynamic_context = 10 # will try to include up to 10 extra lines before the hunk in the patch, until we reach an enclosing function or class
+allow_dynamic_context=true
+max_extra_lines_before_dynamic_context = 8 # will try to include up to 10 extra lines before the hunk in the patch, until we reach an enclosing function or class
 patch_extra_lines_before = 3 # Number of extra lines (+3 default ones) to include before each hunk in the patch
 patch_extra_lines_after = 1 # Number of extra lines (+3 default ones) to include after each hunk in the patch
 secret_provider=""
@@ -31,10 +32,17 @@ ai_disclaimer_title=""  # Pro feature, title for a collapsible disclaimer to AI 
 ai_disclaimer=""  # Pro feature, full text for the AI disclaimer
 output_relevant_configurations=false
 large_patch_policy = "clip" # "clip", "skip"
-is_auto_command=false
 # seed
 seed=-1 # set positive value to fix the seed (and ensure temperature=0)
 temperature=0.2
+# ignore logic
+ignore_pr_title = ["^\\[Auto\\]", "^Auto"] # a list of regular expressions to match against the PR title to ignore the PR action
+ignore_pr_target_branches = [] # a list of regular expressions of target branches to ignore from PR action when an PR is created
+ignore_pr_source_branches = [] # a list of regular expressions of source branches to ignore from PR action when an PR is created
+ignore_pr_labels = [] # labels to ignore from PR action when an PR is created
+#
+is_auto_command = false # will be auto-set to true if the command is triggered by an automation
+enable_ai_metadata = false # will enable adding ai metadata
 
 [pr_reviewer] # /review #
 # enable/disable features
@@ -43,7 +51,6 @@ require_tests_review=true
 require_estimate_effort_to_review=true
 require_can_be_split_review=false
 require_security_review=true
-extra_issue_links=false
 # soc2
 require_soc2_ticket=false
 soc2_ticket_prompt="Does the PR description include a link to ticket in a project management system (e.g., Jira, Asana, Trello, etc.) ?"
@@ -187,18 +194,20 @@ base_url = "https://api.github.com"
 publish_inline_comments_fallback_with_verification = true
 try_fix_invalid_inline_comments = true
 app_name = "pr-action"
+ignore_bot_pr = true
 
 [github_action_config]
 # auto_review = true    # set as env var in .github/workflows/pr-action.yaml
 # auto_describe = true  # set as env var in .github/workflows/pr-action.yaml
 # auto_improve = true   # set as env var in .github/workflows/pr-action.yaml
+# pr_actions = ['opened', 'reopened', 'ready_for_review', 'review_requested']
 
 [github_app]
 # these toggles allows running the github app from custom deployments
 bot_user = "github-actions[bot]"
 override_deployment_type = true
 # settings for "pull_request" event
-handle_actions = ['opened', 'reopened', 'ready_for_review']
+handle_pr_actions = ['opened', 'reopened', 'ready_for_review']
 pr_commands = [
     "/describe --pr_description.final_update_message=false",
     "/review --pr_reviewer.num_code_suggestions=0",
@@ -215,8 +224,6 @@ push_commands = [
     "/describe",
     "/review --pr_reviewer.num_code_suggestions=0",
 ]
-ignore_pr_title = []
-ignore_bot_pr = true
 
 [gitlab]
 url = "https://gitlab.com"
@@ -237,7 +244,7 @@ pr_commands = [
     "/review --pr_reviewer.num_code_suggestions=0",
     "/improve --pr_code_suggestions.commitable_code_suggestions=true --pr_code_suggestions.suggestions_score_threshold=7",
 ]
-
+avoid_full_files = false
 
 [local]
 # LocalGitProvider settings - uncomment to use paths other than default
@@ -293,7 +300,7 @@ number_of_results = 5
 
 [lancedb]
 uri = "./lancedb"
-
 [best_practices]
 content = ""
 max_lines_allowed = 800
+enable_global_best_practices = false

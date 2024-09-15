@@ -62,9 +62,9 @@ Here are the prompts, and example outputs, used as input-output pairs to fine-tu
 
 | Tool     | Prompt                                                                                                     | Example output |
 |----------|------------------------------------------------------------------------------------------------------------|----------------|
-| Describe | [link](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/pr_description_prompts.toml) | [link](https://github.com/KhulnaSoft/pr-action/pull/910#issue-2303989601)           |
-| Review   | [link](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/pr_reviewer_prompts.toml) | [link](https://github.com/KhulnaSoft/pr-action/pull/910#issuecomment-2118761219)           |
-| Improve  | [link](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/pr_code_suggestions_prompts.toml) | [link](https://github.com/KhulnaSoft/pr-action/pull/910#issuecomment-2118761309)           |
+| Describe | [link](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/pr_description_prompts.toml) | [link](https://github.com/Pr-action/pr-action/pull/910#issue-2303989601)           |
+| Review   | [link](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/pr_reviewer_prompts.toml) | [link](https://github.com/Pr-action/pr-action/pull/910#issuecomment-2118761219)           |
+| Improve  | [link](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/pr_code_suggestions_prompts.toml) | [link](https://github.com/Pr-action/pr-action/pull/910#issuecomment-2118761309)           |
 
 ### Evaluation dataset
 
@@ -75,7 +75,7 @@ Here are the prompts, and example outputs, used as input-output pairs to fine-tu
 <br>
 
 We experimented with three model as judges: `gpt-4-turbo-2024-04-09`, `gpt-4o`, and `claude-3-opus-20240229`. All three produced similar results, with the same ranking order. This strengthens the validity of our testing protocol.
-The evaluation prompt can be found [here](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/pr_evaluate_prompt_response.toml)
+The evaluation prompt can be found [here](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/pr_evaluate_prompt_response.toml)
 
 Here is an example of a judge model feedback:
 
