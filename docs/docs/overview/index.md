@@ -16,10 +16,10 @@ PR-Action offers extensive pull request functionalities across various git provi
 |-------|-----------------------------------------------------------------------------------------------------------------------|:------:|:------:|:---------:|:------------:|
 | TOOLS | Review                                                                                                                |   ✅    |   ✅    |   ✅       |      ✅      |
 |       | ⮑ Incremental                                                                                                         |   ✅    |        |            |              |
-|       | ⮑ [SOC2 Compliance](https://pr-action-docs.khulnasoft.com/tools/review/#soc2-ticket-compliance){:target="_blank"} 💎        |   ✅    |   ✅    |   ✅        |      ✅      |
+|       | ⮑ [SOC2 Compliance](https://pr-action.khulnasoft.com/tools/review/#soc2-ticket-compliance){:target="_blank"} 💎        |   ✅    |   ✅    |   ✅        |      ✅      |
 |       | Ask                                                                                                                   |   ✅    |   ✅    |   ✅        |      ✅      |
 |       | Describe                                                                                                              |   ✅    |   ✅    |   ✅        |      ✅      |
-|       | ⮑ [Inline file summary](https://pr-action-docs.khulnasoft.com/tools/describe/#inline-file-summary){:target="_blank"} 💎     |   ✅    |   ✅    |           |      ✅      |
+|       | ⮑ [Inline file summary](https://pr-action.khulnasoft.com/tools/describe/#inline-file-summary){:target="_blank"} 💎     |   ✅    |   ✅    |           |      ✅      |
 |       | Improve                                                                                                               |   ✅    |   ✅    |   ✅        |      ✅      |
 |       | ⮑ Extended                                                                                                            |   ✅    |   ✅    |   ✅        |      ✅      |
 |       | [Custom Prompt](./tools/custom_prompt.md){:target="_blank"} 💎                                                        |   ✅    |   ✅    |   ✅        |      ✅      |

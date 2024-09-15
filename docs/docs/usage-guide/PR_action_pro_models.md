@@ -3,14 +3,14 @@
 The default models used by PR-Action Pro are OpenAI's GPT-4 models. We use a combination of GPT-4-Turbo and GPT-4o to strike a balance between speed and quality.
 
 However, users can change the model used by PR-Action Pro to Claude-3.5-sonnet, which also excels at code tasks. 
-To do so, add the following to your [configuration](https://pr-action-docs.khulnasoft.com/usage-guide/configuration_options/) file:
+To do so, add the following to your [configuration](https://pr-action.khulnasoft.com/usage-guide/configuration_options/) file:
 
 ```
 [config]
 model="claude-3-5-sonnet"
 ```
 
-Note that Claude models tend to give lower scores for each suggestion, so if you are using a [threshold](https://pr-action-docs.khulnasoft.com/tools/improve/#configuration-options):
+Note that Claude models tend to give lower scores for each suggestion, so if you are using a [threshold](https://pr-action.khulnasoft.com/tools/improve/#configuration-options):
 ```
 [pr_code_suggestions]
 suggestions_score_threshold=...

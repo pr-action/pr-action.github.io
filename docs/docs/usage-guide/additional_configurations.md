@@ -1,6 +1,6 @@
 ## Show possible configurations
 The possible configurations of pr-action are stored in [here](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml).
-In the [tools](https://pr-action-docs.khulnasoft.com/tools/) page you can find explanations on how to use these configurations for each tool.
+In the [tools](https://pr-action.khulnasoft.com/tools/) page you can find explanations on how to use these configurations for each tool.
 
 To print all the available configurations as a comment on your PR, you can use the following command:
 ```
