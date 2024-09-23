@@ -9,7 +9,7 @@ Examples of invoking the different tools via the CLI:
 - **Reflect**:      `python -m pr_action.cli --pr_url=<pr_url>  reflect`
 - **Update Changelog**:      `python -m pr_action.cli --pr_url=<pr_url>  update_changelog`
 
-`<pr_url>` is the url of the relevant PR (for example: [#50](https://github.com/Pr-action/pr-action/pull/50)).
+`<pr_url>` is the url of the relevant PR (for example: [#50](https://github.com/pr-action/pr-action/pull/50)).
 
 **Notes:**
 
@@ -28,7 +28,7 @@ This is useful for debugging or experimenting with different tools.
 
 (3)
 
-**git provider**: The [git_provider](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml#L5) field in a configuration file determines the GIT provider that will be used by PR-Action. Currently, the following providers are supported:
+**git provider**: The [git_provider](https://github.com/pr-action/pr-action/blob/main/pr_action/settings/configuration.toml#L5) field in a configuration file determines the GIT provider that will be used by PR-Action. Currently, the following providers are supported:
 `
 "github", "gitlab", "bitbucket", "azure", "codecommit", "local", "gerrit"
 `
@@ -39,7 +39,7 @@ Default is "github".
 
 ### Online usage
 
-Online usage means invoking PR-Action tools by [comments](https://github.com/Pr-action/pr-action/pull/229#issuecomment-1695021901) on a PR.
+Online usage means invoking PR-Action tools by [comments](https://github.com/pr-action/pr-action/pull/229#issuecomment-1695021901) on a PR.
 Commands for invoking the different tools via comments:
 
 - **Review**:       `/review`
@@ -55,7 +55,7 @@ For example, if you want to edit the `review` tool configurations, you can run:
 ```
 /review --pr_reviewer.extra_instructions="..." --pr_reviewer.require_score_review=false
 ```
-Any configuration value in [configuration file](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml) file can be similarly edited. Comment `/config` to see the list of available configurations.
+Any configuration value in [configuration file](https://github.com/pr-action/pr-action/blob/main/pr_action/settings/configuration.toml) file can be similarly edited. Comment `/config` to see the list of available configurations.
 
 
 ## GitHub App
@@ -66,7 +66,7 @@ Any configuration value in [configuration file](https://github.com/Pr-action/pr-
 
 ### GitHub app automatic tools when a new PR is opened
 
-The [github_app](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml#L108) section defines GitHub app specific configurations.  
+The [github_app](https://github.com/pr-action/pr-action/blob/main/pr_action/settings/configuration.toml#L108) section defines GitHub app specific configurations.  
 
 The configuration parameter `pr_commands` defines the list of tools that will be **run automatically** when a new PR is opened.
 ```
@@ -133,7 +133,7 @@ If not set, the default configuration is `["opened", "reopened", "ready_for_revi
 Review result is output as JSON to `steps.{step-id}.outputs.review` property.
 The JSON structure is equivalent to the yaml data structure defined in [pr_reviewer_prompts.toml](https://github.com/idubnori/pr-action/blob/main/pr_action/settings/pr_reviewer_prompts.toml).
 
-Note that you can give additional config parameters by adding environment variables to `.github/workflows/pr_action.yml`, or by using a `.pr_action.toml` [configuration file](https://pr-action.khulnasoft.com/usage-guide/configuration_options/#global-configuration-file) in the root of your repo
+Note that you can give additional config parameters by adding environment variables to `.github/workflows/pr_action.yml`, or by using a `.pr_action.toml` [configuration file](https://pr-action-docs.codium.ai/usage-guide/configuration_options/#global-configuration-file) in the root of your repo
 
 For example, you can set an environment variable: `pr_description.publish_labels=false`, or add a `.pr_action.toml` file with the following content:
 ```
@@ -168,17 +168,17 @@ push_commands = [
 Note that to use the 'handle_push_trigger' feature, you need to give the gitlab webhook also the "Push events" scope.
 
 ## BitBucket App
-Similar to GitHub app, when running PR-Action from BitBucket App, the default [configuration file](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml) from a pre-built docker will be initially loaded.
+Similar to GitHub app, when running PR-Action from BitBucket App, the default [configuration file](https://github.com/pr-action/pr-action/blob/main/pr_action/settings/configuration.toml) from a pre-built docker will be initially loaded.
 
 By uploading a local `.pr_action.toml` file to the root of the repo's main branch, you can edit and customize any configuration parameter. Note that you need to upload `.pr_action.toml` prior to creating a PR, in order for the configuration to take effect.
 
 For example, if your local `.pr_action.toml` file contains:
 ```
 [pr_reviewer]
-inline_code_comments = true
+extra_instructions = "Answer in japanese"
 ```
 
-Each time you invoke a `/review` tool, it will use inline code comments.
+Each time you invoke a `/review` tool, it will use the extra instructions you set in the local configuration file.
 
 
 Note that among other limitations, BitBucket provides relatively low rate-limits for applications (up to 1000 requests per hour), and does not provide an API to track the actual rate-limit usage.
