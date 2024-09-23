@@ -66,7 +66,7 @@ git_provider="azure"
 
 Azure DevOps provider supports [PAT token](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=Windows) or [DefaultAzureCredential](https://learn.microsoft.com/en-us/azure/developer/python/sdk/authentication-overview#authentication-in-server-environments) authentication.
 PAT is faster to create, but has build in expiration date, and will use the user identity for API calls. 
-Using DefaultAzureCredential you can use managed identity or Service principle, which are more secure and will create separate ADO user identity (via AAD) to the agent.
+Using DefaultAzureCredential you can use managed identity or Service principle, which are more secure and will create separate ADO user identity (via AAD) to the action.
 
 If PAT was chosen, you can assign the value in .secrets.toml. 
 If DefaultAzureCredential was chosen, you can assigned the additional env vars like AZURE_CLIENT_SECRET directly, 

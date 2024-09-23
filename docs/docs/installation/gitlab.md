@@ -48,12 +48,12 @@ Note that if your base branches are not protected, don't set the variables as `p
 ```
 WEBHOOK_SECRET=$(python -c "import secrets; print(secrets.token_hex(10))")
 ```
-3. Follow the instructions to build the Docker image, setup a secrets file and deploy on your own server from [here](https://pr-action-docs.khulnasoft.com/installation/github/#run-as-a-github-app) steps 4-7.
+3. Follow the instructions to build the Docker image, setup a secrets file and deploy on your own server from [here](https://pr-action.khulnasoft.com/installation/github/#run-as-a-github-app) steps 4-7.
 
 4. In the secrets file, fill in the following:
     - Your OpenAI key.
     - In the [gitlab] section, fill in personal_access_token and shared_secret. The access token can be a personal access token, or a group or project access token.
-    - Set deployment_type to 'gitlab' in [configuration.toml](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml)
+    - Set deployment_type to 'gitlab' in [configuration.toml](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml)
    
 5. Create a webhook in GitLab. Set the URL to ```http[s]://<PR_ACTION_HOSTNAME>/webhook```. Set the secret token to the generated secret from step 2.
 In the "Trigger" section, check the ‘comments’ and ‘merge request events’ boxes.

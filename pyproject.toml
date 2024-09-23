@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pr-action"
-version = "0.2.2"
+version = "0.2.4"
 
 authors = [{name= "KhulnaSoft", email = "info@khulnasoft.com"}]
 
@@ -30,8 +30,8 @@ dynamic = ["dependencies"]
 dependencies = {file = ["requirements.txt"]}
 
 [project.urls]
-"Homepage" = "https://github.com/KhulnaSoft/pr-action"
-"Documentation" = "https://pr-action-docs.khulnasoft.com/"
+"Homepage" = "https://github.com/pr-action/pr-action"
+"Documentation" = "https://pr-action.khulnasoft.com/"
 
 [tool.setuptools]
 include-package-data = true

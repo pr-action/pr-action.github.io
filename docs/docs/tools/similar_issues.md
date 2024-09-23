@@ -37,7 +37,7 @@ These parameters can be obtained by registering to [Pinecone](https://app.pineco
 - To invoke the 'similar issue' tool from **CLI**, run:
 `python3 cli.py --issue_url=... similar_issue`
 
-- To invoke the 'similar' issue tool via online usage, [comment](https://github.com/KhulnaSoft/pr-action/issues/178#issuecomment-1716934893) on a PR:
+- To invoke the 'similar' issue tool via online usage, [comment](https://github.com/Pr-action/pr-action/issues/178#issuecomment-1716934893) on a PR:
 `/similar_issue`
 
-- You can also enable the 'similar issue' tool to run automatically when a new issue is opened, by adding it to the [pr_commands list in the github_app section](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml#L66)
+- You can also enable the 'similar issue' tool to run automatically when a new issue is opened, by adding it to the [pr_commands list in the github_app section](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml#L66)

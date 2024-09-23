@@ -352,7 +352,7 @@ class GerritProvider(GitProvider):
             )
             patch = diff(cwd=self.repo_path)
             patch_id = uuid.uuid4().hex[0:4]
-            path = "/".join(["khulnasoft", self.refspec, patch_id])
+            path = "/".join(["pr-action", self.refspec, patch_id])
             full_path = upload_patch(patch, path)
             reset_local_changes(self.repo_path)
             msg.append(f'* {description}\n{full_path}')

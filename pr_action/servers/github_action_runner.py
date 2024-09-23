@@ -3,7 +3,7 @@ import json
 import os
 from typing import Union
 
-from pr_action.agent.pr_action import PRAction
+from pr_action.action.pr_action import PRAction
 from pr_action.config_loader import get_settings
 from pr_action.git_providers import get_git_provider
 from pr_action.git_providers.utils import apply_repo_settings
@@ -83,7 +83,11 @@ async def run_action():
     # Handle pull request event
     if GITHUB_EVENT_NAME == "pull_request":
         action = event_payload.get("action")
-        if action in ["opened", "reopened", "ready_for_review", "review_requested"]:
+
+        # Retrieve the list of actions from the configuration
+        pr_actions = get_settings().get("GITHUB_ACTION_CONFIG.PR_ACTIONS", ["opened", "reopened", "ready_for_review", "review_requested"])
+
+        if action in pr_actions:
             pr_url = event_payload.get("pull_request", {}).get("url")
             if pr_url:
                 # legacy - supporting both GITHUB_ACTION and GITHUB_ACTION_CONFIG

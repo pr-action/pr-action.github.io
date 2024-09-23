@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: PR Action action step
         id: praction
-        uses: KhulnaSoft/pr-action@main
+        uses: Pr-action/pr-action@main
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           OPENAI_ORG: ${{ secrets.OPENAI_ORG }} # optional

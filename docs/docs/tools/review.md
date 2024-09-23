@@ -6,7 +6,10 @@ The tool can be triggered automatically every time a new PR is [opened](../usage
 /review
 ```
 
-Note that the main purpose of the `review` tool is to provide the **PR reviewer** with useful feedbacks and actions. The PR author, in contrast, may prefer to save time and focus on the output of the [improve](./improve.md) tool, which provides actionable code suggestions.
+Note that the main purpose of the `review` tool is to provide the **PR reviewer** with useful feedbacks and insights. The PR author, in contrast, may prefer to save time and focus on the output of the [improve](./improve.md) tool, which provides actionable code suggestions.
+
+(Read more about the different personas in the PR process and how PR-Action aims to assist them in our [blog](https://www.khulnasoft.com/blog/understanding-the-challenges-and-pain-points-of-the-pull-request-cycle/))
+
 
 ## Example usage
 
@@ -27,7 +30,7 @@ If you want to edit [configurations](#configuration-options), add the relevant o
 
 ### Automatic triggering
 
-To run the `review` automatically when a PR is opened, define in a [configuration file](https://pr-action-docs.khulnasoft.com/usage-guide/configuration_options/#wiki-configuration-file):
+To run the `review` automatically when a PR is opened, define in a [configuration file](https://pr-action.khulnasoft.com/usage-guide/configuration_options/#wiki-configuration-file):
 ```
 [github_app]
 pr_commands = [
@@ -81,7 +84,7 @@ num_code_suggestions = ...
 [//]: # (![reflection answers]&#40;https://khulnasoft.com/images/pr_action/reflection_answers.png&#41;{width=512})
 
 [//]: # ()
-[//]: # (![reflection actions]&#40;https://khulnasoft.com/images/pr_action/reflection_actions.png&#41;{width=512})
+[//]: # (![reflection insights]&#40;https://khulnasoft.com/images/pr_action/reflection_insights.png&#41;{width=512})
 
 
 
@@ -206,7 +209,7 @@ If enabled, the `review` tool can approve a PR when a specific comment, `/review
 
     The `review` tool can auto-generate two specific types of labels for a PR:
     
-    - a `possible security issue` label that detects if a possible [security issue](https://github.com/KhulnaSoft/pr-action/blob/tr/user_description/pr_action/settings/pr_reviewer_prompts.toml#L136) exists in the PR code (`enable_review_labels_security` flag)
+    - a `possible security issue` label that detects if a possible [security issue](https://github.com/Pr-action/pr-action/blob/tr/user_description/pr_action/settings/pr_reviewer_prompts.toml#L136) exists in the PR code (`enable_review_labels_security` flag)
     - a `Review effort [1-5]: x` label, where x is the estimated effort to review the PR (`enable_review_labels_effort` flag)
     
     Both modes are useful, and we recommended to enable them.

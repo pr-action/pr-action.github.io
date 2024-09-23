@@ -1,9 +1,16 @@
 ## Overview
-The `improve` tool scans the PR code changes, and automatically generates suggestions for improving the PR code.
+The `improve` tool scans the PR code changes, and automatically generates [meaningful](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/pr_code_suggestions_prompts.toml#L41) suggestions for improving the PR code.
 The tool can be triggered automatically every time a new PR is [opened](../usage-guide/automations_and_usage.md#github-app-automatic-tools-when-a-new-pr-is-opened), or it can be invoked manually by commenting on any PR:
 ```
 /improve
 ```
+
+![code_suggestions_as_comment_closed.png](https://khulnasoft.com/images/pr_action/code_suggestions_as_comment_closed.png){width=512}
+
+![code_suggestions_as_comment_open.png](https://khulnasoft.com/images/pr_action/code_suggestions_as_comment_open.png){width=512}
+
+Note that the `Apply this suggestion` checkbox, which interactively converts a suggestion into a commitable code comment, is available only for PR-Action Pro 💎 users.
+
 
 ## Example usage
 
@@ -11,14 +18,12 @@ The tool can be triggered automatically every time a new PR is [opened](../usage
 
 Invoke the tool manually by commenting `/improve` on any PR. The code suggestions by default are presented as a single comment:
 
-![code suggestions as comment](https://khulnasoft.com/images/pr_action/code_suggestions_as_comment.png){width=512}
-
 To edit [configurations](#configuration-options) related to the improve tool, use the following template:
 ```
 /improve --pr_code_suggestions.some_config1=... --pr_code_suggestions.some_config2=...
 ```
 
-For example, you can choose to present the suggestions as commitable code comments, by running the following command:
+For example, you can choose to present all the suggestions as commitable code comments, by running the following command:
 ```
 /improve --pr_code_suggestions.commitable_code_suggestions=true
 ```
@@ -26,12 +31,12 @@ For example, you can choose to present the suggestions as commitable code commen
 ![improve](https://khulnasoft.com/images/pr_action/improve.png){width=512}
 
 
-Note that a single comment has a significantly smaller PR footprint. We recommend this mode for most cases.
-Also note that collapsible are not supported in _Bitbucket_. Hence, the suggestions are presented there as code comments.
+As can be seen, a single table comment has a significantly smaller PR footprint. We recommend this mode for most cases.
+Also note that collapsible are not supported in _Bitbucket_. Hence, the suggestions can only be presented in Bitbucket as code comments.
 
 ### Automatic triggering
 
-To run the `improve` automatically when a PR is opened, define in a [configuration file](https://pr-action-docs.khulnasoft.com/usage-guide/configuration_options/#wiki-configuration-file):
+To run the `improve` automatically when a PR is opened, define in a [configuration file](https://pr-action.khulnasoft.com/usage-guide/configuration_options/#wiki-configuration-file):
 ```
 [github_app]
 pr_commands = [
@@ -46,6 +51,22 @@ num_code_suggestions_per_chunk = ...
 
 - The `pr_commands` lists commands that will be executed automatically when a PR is opened.
 - The `[pr_code_suggestions]` section contains the configurations for the `improve` tool you want to edit (if any)
+
+### Assessing Impact 💎
+
+Note that PR-Action pro tracks two types of implementations:
+
+- Direct implementation - when the user directly applies the suggestion by clicking the `Apply` checkbox.
+- Indirect implementation - when the user implements the suggestion in their IDE environment. In this case, PR-Action will utilize, after each commit, a dedicated logic to identify if a suggestion was implemented, and will mark it as implemented.
+
+![code_suggestions_asses_impact](https://khulnasoft.com/images/pr_action/code_suggestions_asses_impact.png){width=512}
+
+In post-process, PR-Action counts the number of suggestions that were implemented, and provides general statistics and insights about the suggestions' impact on the PR process.
+
+![code_suggestions_asses_impact_stats_1](https://khulnasoft.com/images/pr_action/code_suggestions_asses_impact_stats_1.png){width=512}
+
+![code_suggestions_asses_impact_stats_2](https://khulnasoft.com/images/pr_action/code_suggestions_asses_impact_stats_2.png){width=512}
+
 
 ## Usage Tips
 
@@ -77,9 +98,12 @@ the tool can automatically approve the PR when the user checks the self-review c
 
     ![self_review_2](https://khulnasoft.com/images/pr_action/self_review_2.png){width=512}
 
-### `Extra instructions` and `best practices`
+### 'Extra instructions' and 'best practices'
 
 #### Extra instructions
+
+>`Platforms supported: GitHub, GitLab, Bitbucket`
+
 You can use the `extra_instructions` configuration option to give the AI model additional instructions for the `improve` tool.
 Be specific, clear, and concise in the instructions. With extra instructions, you are the prompter. Specify relevant aspects that you want the model to focus on.
     
@@ -96,104 +120,131 @@ extra_instructions="""\
 Use triple quotes to write multi-line instructions. Use bullet points or numbers to make the instructions more readable.
 
 #### Best practices 💎
-Another option to give additional guidance to the AI model is by creating a dedicated [**wiki page**](https://github.com/KhulnaSoft/pr-action/wiki) called `best_practices.md`. 
-This page can contain a list of best practices, coding standards, and guidelines that are specific to your repo/organization
 
-The AI model will use this page as a reference, and in case the PR code violates any of the guidelines, it will suggest improvements accordingly, with a dedicated label: `Organization
+>`Platforms supported: GitHub, GitLab`
+
+Another option to give additional guidance to the AI model is by creating a dedicated [**wiki page**](https://github.com/Pr-action/pr-action/wiki) called `best_practices.md`. 
+This page can contain a list of best practices, coding standards, and guidelines that are specific to your repo/organization.
+
+The AI model will use this wiki page as a reference, and in case the PR code violates any of the guidelines, it will suggest improvements accordingly, with a dedicated label: `Organization
 best practice`. 
 
-Example for a `best_practices.md` content can be found [here](https://github.com/KhulnaSoft/pr-action/blob/main/docs/docs/usage-guide/EXAMPLE_BEST_PRACTICE.md) (adapted from Google's [pyguide](https://google.github.io/styleguide/pyguide.html)).
+Example for a `best_practices.md` content can be found [here](https://github.com/Pr-action/pr-action/blob/main/docs/docs/usage-guide/EXAMPLE_BEST_PRACTICE.md) (adapted from Google's [pyguide](https://google.github.io/styleguide/pyguide.html)).
 This file is only an example. Since it is used as a prompt for an AI model, we want to emphasize the following:
 
 - It should be written in a clear and concise manner
 - If needed, it should give short relevant code snippets as examples
-- Up to 800 lines are allowed
+- Recommended to limit the text to 800 lines or fewer. Here’s why:
 
+     1) Extremely long best practices documents may not be fully processed by the AI model.
+  
+     2) A lengthy file probably represent a more "**generic**" set of guidelines, which the AI model is already familiar with. The objective is to focus on a more targeted set of guidelines tailored to the specific needs of this project.
 
-Example results:
+##### Local and global best practices
+By default, PR-Action will look for a local `best_practices.md` wiki file in the root of the relevant local repo.
+
+If you want to enable also a global `best_practices.md` wiki file, set first in the global configuration file:
+
+```
+[best_practices]
+enable_global_best_practices = true
+```
+
+Then, create a `best_practices.md` wiki file in the root of [global](https://pr-action.khulnasoft.com/usage-guide/configuration_options/#global-configuration-file) configuration repository,  `pr-action-settings`.
+
+##### Example results
 
 ![best_practice](https://khulnasoft.com/images/pr_action/org_best_practice.png){width=512}
 
-Note that while the `extra instructions` are more related to the way the `improve` tool behaves, the `best_practices.md` file is a general guideline for the way code should be written in the repo.
+
+#### How to combine `extra instructions` and `best practices`
+
+The `extra instructions` configuration is more related to the `improve` tool prompt. It can be used, for example, to avoid specific suggestions ("Don't suggest to add try-except block", "Ignore changes in toml files", ...) or to emphasize specific aspects or formats ("Answer in Japanese", "Give only short suggestions", ...)
+
+In contrast, the `best_practices.md` file is a general guideline for the way code should be written in the repo.
+
 Using a combination of both can help the AI model to provide relevant and tailored suggestions.
 
 ## Configuration options
 
-!!! example "General options"
+??? example "General options"
+    
+    <table>
+      <tr>
+        <td><b>num_code_suggestions</b></td>
+        <td>Number of code suggestions provided by the 'improve' tool. Default is 4 for CLI, 0 for auto tools.</td>
+      </tr>
+      <tr>
+        <td><b>extra_instructions</b></td>
+        <td>Optional extra instructions to the tool. For example: "focus on the changes in the file X. Ignore change in ...".</td>
+      </tr>
+      <tr>
+        <td><b>rank_suggestions</b></td>
+        <td>If set to true, the tool will rank the suggestions, based on importance. Default is false.</td>
+      </tr>
+      <tr>
+        <td><b>commitable_code_suggestions</b></td>
+        <td>If set to true, the tool will display the suggestions as commitable code comments. Default is false.</td>
+      </tr>
+      <tr>
+        <td><b>persistent_comment</b></td>
+        <td>If set to true, the improve comment will be persistent, meaning that every new improve request will edit the previous one. Default is false.</td>
+      </tr>
+      <tr>
+        <td><b>self_reflect_on_suggestions</b></td>
+        <td>If set to true, the improve tool will calculate an importance score for each suggestion [1-10], and sort the suggestion labels group based on this score. Default is true.</td>
+      </tr>
+      <tr>
+        <td><b>suggestions_score_threshold</b></td>
+        <td> Any suggestion with importance score less than this threshold will be removed. Default is 0. Highly recommend not to set this value above 7-8, since above it may clip relevant suggestions that can be useful. </td>
+      </tr>
+      <tr>
+        <td><b>apply_suggestions_checkbox</b></td>
+        <td> Enable the checkbox to create a committable suggestion. Default is true.</td>
+      </tr>
+      <tr>
+        <td><b>enable_help_text</b></td>
+        <td>If set to true, the tool will display a help text in the comment. Default is true.</td>
+      </tr>
+      <tr>
+        <td><b>enable_chat_text</b></td>
+        <td>If set to true, the tool will display a reference to the PR chat in the comment. Default is true.</td>
+      </tr>
+    </table>
 
-<table>
-  <tr>
-    <td><b>num_code_suggestions</b></td>
-    <td>Number of code suggestions provided by the 'improve' tool. Default is 4 for CLI, 0 for auto tools.</td>
-  </tr>
-  <tr>
-    <td><b>extra_instructions</b></td>
-    <td>Optional extra instructions to the tool. For example: "focus on the changes in the file X. Ignore change in ...".</td>
-  </tr>
-  <tr>
-    <td><b>rank_suggestions</b></td>
-    <td>If set to true, the tool will rank the suggestions, based on importance. Default is false.</td>
-  </tr>
-  <tr>
-    <td><b>commitable_code_suggestions</b></td>
-    <td>If set to true, the tool will display the suggestions as commitable code comments. Default is false.</td>
-  </tr>
-  <tr>
-    <td><b>persistent_comment</b></td>
-    <td>If set to true, the improve comment will be persistent, meaning that every new improve request will edit the previous one. Default is false.</td>
-  </tr>
-  <tr>
-    <td><b>self_reflect_on_suggestions</b></td>
-    <td>If set to true, the improve tool will calculate an importance score for each suggestion [1-10], and sort the suggestion labels group based on this score. Default is true.</td>
-  </tr>
-  <tr>
-    <td><b>suggestions_score_threshold</b></td>
-    <td> Any suggestion with importance score less than this threshold will be removed. Default is 0. Highly recommend not to set this value above 7-8, since above it may clip relevant suggestions that can be useful. </td>
-  </tr>
-  <tr>
-    <td><b>apply_suggestions_checkbox</b></td>
-    <td> Enable the checkbox to create a committable suggestion. Default is true.</td>
-  </tr>
-  <tr>
-    <td><b>enable_help_text</b></td>
-    <td>If set to true, the tool will display a help text in the comment. Default is true.</td>
-  </tr>
-</table>
+??? example "params for 'extended' mode"
 
-!!! example "params for 'extended' mode"
-
-<table>
-  <tr>
-    <td><b>auto_extended_mode</b></td>
-    <td>Enable extended mode automatically (no need for the --extended option). Default is true.</td>
-  </tr>
-  <tr>
-    <td><b>num_code_suggestions_per_chunk</b></td>
-    <td>Number of code suggestions provided by the 'improve' tool, per chunk. Default is 5.</td>
-  </tr>
-  <tr>
-    <td><b>rank_extended_suggestions</b></td>
-    <td>If set to true, the tool will rank the suggestions, based on importance. Default is true.</td>
-  </tr>
-  <tr>
-    <td><b>max_number_of_calls</b></td>
-    <td>Maximum number of chunks. Default is 5.</td>
-  </tr>
-  <tr>
-    <td><b>final_clip_factor</b></td>
-    <td>Factor to remove suggestions with low confidence. Default is 0.9.</td>
-  </tr>
-</table>
+    <table>
+      <tr>
+        <td><b>auto_extended_mode</b></td>
+        <td>Enable extended mode automatically (no need for the --extended option). Default is true.</td>
+      </tr>
+      <tr>
+        <td><b>num_code_suggestions_per_chunk</b></td>
+        <td>Number of code suggestions provided by the 'improve' tool, per chunk. Default is 5.</td>
+      </tr>
+      <tr>
+        <td><b>rank_extended_suggestions</b></td>
+        <td>If set to true, the tool will rank the suggestions, based on importance. Default is true.</td>
+      </tr>
+      <tr>
+        <td><b>max_number_of_calls</b></td>
+        <td>Maximum number of chunks. Default is 5.</td>
+      </tr>
+      <tr>
+        <td><b>final_clip_factor</b></td>
+        <td>Factor to remove suggestions with low confidence. Default is 0.9.</td>
+      </tr>
+    </table>
 
 ## A note on code suggestions quality
 
-- While the current AI for code is getting better and better (GPT-4), it's not flawless. Not all the suggestions will be perfect, and a user should not accept all of them automatically. Critical reading and judgment are required.
-- While mistakes of the AI are rare but can happen, a real benefit from the suggestions of the `improve` (and [`review`](https://pr-action-docs.khulnasoft.com/tools/review/)) tool is to catch, with high probability, **mistakes or bugs done by the PR author**, when they happen. So, it's a good practice to spend the needed ~30-60 seconds to review the suggestions, even if not all of them are always relevant.
+- AI models for code are getting better and better (Sonnet-3.5 and GPT-4), but they are not flawless. Not all the suggestions will be perfect, and a user should not accept all of them automatically. Critical reading and judgment are required.
+- While mistakes of the AI are rare but can happen, a real benefit from the suggestions of the `improve` (and [`review`](https://pr-action.khulnasoft.com/tools/review/)) tool is to catch, with high probability, **mistakes or bugs done by the PR author**, when they happen. So, it's a good practice to spend the needed ~30-60 seconds to review the suggestions, even if not all of them are always relevant.
 - The hierarchical structure of the suggestions is designed to help the user to _quickly_ understand them, and to decide which ones are relevant and which are not:
 
     - Only if the `Category` header is relevant, the user should move to the summarized suggestion description
     - Only if the summarized suggestion description is relevant, the user should click on the collapsible, to read the full suggestion description with a code preview example.
 
-In addition, we recommend to use the `extra_instructions` field to guide the model to suggestions that are more relevant to the specific needs of the project. 
-<br>
-Consider also trying the [Custom Prompt Tool](./custom_prompt.md) 💎, that will **only** propose code suggestions that follow specific guidelines defined by user.
+- In addition, we recommend to use the [`extra_instructions`](https://pr-action.khulnasoft.com/tools/improve/#extra-instructions-and-best-practices) field to guide the model to suggestions that are more relevant to the specific needs of the project. 
+- The interactive [PR chat](https://pr-action.khulnasoft.com/chrome-extension/) also provides an easy way to get more tailored suggestions and feedback from the AI model.

@@ -19,7 +19,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette_context.middleware import RawContextMiddleware
 
-from pr_action.agent.pr_action import PRAction, command2class
+from pr_action.action.pr_action import PRAction, command2class
 from pr_action.algo.utils import update_settings_from_args
 from pr_action.config_loader import get_settings
 from pr_action.git_providers.utils import apply_repo_settings
@@ -65,9 +65,10 @@ def authorize(credentials: HTTPBasicCredentials = Depends(security)):
             )
 
 
-async def _perform_commands_azure(commands_conf: str, agent: PRAction, api_url: str, log_context: dict):
+async def _perform_commands_azure(commands_conf: str, action: PRAction, api_url: str, log_context: dict):
     apply_repo_settings(api_url)
     commands = get_settings().get(f"azure_devops_server.{commands_conf}")
+    get_settings().set("config.is_auto_command", True)
     for command in commands:
         try:
             split_command = command.split(" ")
@@ -77,7 +78,7 @@ async def _perform_commands_azure(commands_conf: str, agent: PRAction, api_url: 
             new_command = ' '.join([command] + other_args)
             get_logger().info(f"Performing command: {new_command}")
             with get_logger().contextualize(**log_context):
-                await agent.handle_request(api_url, new_command)
+                await action.handle_request(api_url, new_command)
         except Exception as e:
             get_logger().error(f"Failed to perform command {command}: {e}")
 

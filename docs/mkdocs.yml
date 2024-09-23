@@ -1,6 +1,6 @@
 site_name: PR-Action Documentation
-repo_url: https://github.com/KhulnaSoft/pr-action
-repo_name: KhulnaSoft/pr-action
+repo_url: https://github.com/Pr-action/pr-action
+repo_name: Pr-action/pr-action
 
 nav:
   - Overview:
@@ -41,9 +41,24 @@ nav:
     - 💎 Custom Prompt: 'tools/custom_prompt.md'
     - 💎 CI Feedback: 'tools/ci_feedback.md'
     - 💎 Similar Code: 'tools/similar_code.md'
-  - Core Abilities: 'core-abilities/index.md'
-  - Chrome Extension: 'chrome-extension/index.md'
-  - Code Fine-tuning Benchmark: 'finetuning_benchmark/index.md'
+  - Core Abilities:
+      - 'core-abilities/index.md'
+      - Local and global metadata: 'core-abilities/metadata.md'
+      - Dynamic context: 'core-abilities/dynamic_context.md'
+      - Self-reflection: 'core-abilities/self_reflection.md'
+      - Impact evaluation: 'core-abilities/impact_evaluation.md'
+      - Interactivity: 'core-abilities/interactivity.md'
+      - Compression strategy: 'core-abilities/compression_strategy.md'
+      - Code-oriented YAML: 'core-abilities/code_oriented_yaml.md'
+      - Static code analysis: 'core-abilities/static_code_analysis.md'
+      - Code Fine-tuning Benchmark: 'finetuning_benchmark/index.md'
+  - Chrome Extension:
+      - PR-Action Chrome Extension: 'chrome-extension/index.md'
+      - Features: 'chrome-extension/features.md'
+      - Data Privacy: 'chrome-extension/data_privacy.md'
+  - FAQ:
+      - FAQ: 'faq/index.md'
+#  - Code Fine-tuning Benchmark: 'finetuning_benchmark/index.md'
 
 theme:
   logo: assets/logo.svg
@@ -96,11 +111,11 @@ extra:
   generator: false
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/KhulnaSoft
+      link: https://github.com/Pr-action
     - icon: fontawesome/brands/discord
       link: https://discord.com/invite/SgSxuQ65GF
     - icon: fontawesome/brands/youtube
-      link: https://www.youtube.com/@KhulnaSoft
+      link: https://www.youtube.com/@Pr-action
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/company/khulnasoft
     - icon: fontawesome/brands/twitter

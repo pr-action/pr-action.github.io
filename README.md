@@ -3,7 +3,7 @@
 [![GitHub license](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/khulnasoft/pr-action/blob/main/LICENSE)
 [![Static Badge](https://img.shields.io/badge/Chrome-Extension-violet)](https://chromewebstore.google.com/detail/pr-action-chrome-extension/ephlnjeghhogofkifjloamocljapahnl)
 [![Static Badge](https://img.shields.io/badge/Code-Benchmark-blue)](https://khulnasoft.github.io/pr-action/finetuning_benchmark/)
-[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label&color=purple)](https://discord.gg/jaCmKVmf)
+[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label&color=purple)](https://discord.gg/NfDj6xsR)
 [![Twitter](https://img.shields.io/twitter/follow/khulnasoft)](https://twitter.com/khulnasoft)
     <a href="https://github.com/khulnasoft/pr-action/commits/main">
     <img alt="GitHub" src="https://img.shields.io/github/last-commit/khulnasoft/pr-action/main?style=for-the-badge" height="20">
@@ -224,7 +224,7 @@ https://openai.com/enterprise-privacy
 
 [![Join our Discord community](https://raw.githubusercontent.com/KhulnaSoft/khulnasoft-vscode-release/main/media/docs/Joincommunity.png)](https://discord.gg/kG35uSHDBc)
 
-- Discord community: https://discord.gg/jaCmKVmf
+- Discord community: https://discord.gg/NfDj6xsR
 - KhulnaSoft site: https://khulnasoft.com
 - Blog: https://www.khulnasoft.com/blog/
 - Troubleshooting: https://www.khulnasoft.com/blog/technical-faq-and-troubleshooting/

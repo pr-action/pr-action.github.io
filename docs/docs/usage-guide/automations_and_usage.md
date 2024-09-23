@@ -9,7 +9,7 @@ Examples of invoking the different tools via the CLI:
 - **Reflect**:      `python -m pr_action.cli --pr_url=<pr_url>  reflect`
 - **Update Changelog**:      `python -m pr_action.cli --pr_url=<pr_url>  update_changelog`
 
-`<pr_url>` is the url of the relevant PR (for example: [#50](https://github.com/KhulnaSoft/pr-action/pull/50)).
+`<pr_url>` is the url of the relevant PR (for example: [#50](https://github.com/Pr-action/pr-action/pull/50)).
 
 **Notes:**
 
@@ -28,7 +28,7 @@ This is useful for debugging or experimenting with different tools.
 
 (3)
 
-**git provider**: The [git_provider](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml#L5) field in a configuration file determines the GIT provider that will be used by PR-Action. Currently, the following providers are supported:
+**git provider**: The [git_provider](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml#L5) field in a configuration file determines the GIT provider that will be used by PR-Action. Currently, the following providers are supported:
 `
 "github", "gitlab", "bitbucket", "azure", "codecommit", "local", "gerrit"
 `
@@ -39,7 +39,7 @@ Default is "github".
 
 ### Online usage
 
-Online usage means invoking PR-Action tools by [comments](https://github.com/KhulnaSoft/pr-action/pull/229#issuecomment-1695021901) on a PR.
+Online usage means invoking PR-Action tools by [comments](https://github.com/Pr-action/pr-action/pull/229#issuecomment-1695021901) on a PR.
 Commands for invoking the different tools via comments:
 
 - **Review**:       `/review`
@@ -55,7 +55,7 @@ For example, if you want to edit the `review` tool configurations, you can run:
 ```
 /review --pr_reviewer.extra_instructions="..." --pr_reviewer.require_score_review=false
 ```
-Any configuration value in [configuration file](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml) file can be similarly edited. Comment `/config` to see the list of available configurations.
+Any configuration value in [configuration file](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml) file can be similarly edited. Comment `/config` to see the list of available configurations.
 
 
 ## GitHub App
@@ -66,7 +66,7 @@ Any configuration value in [configuration file](https://github.com/KhulnaSoft/pr
 
 ### GitHub app automatic tools when a new PR is opened
 
-The [github_app](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml#L108) section defines GitHub app specific configurations.  
+The [github_app](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml#L108) section defines GitHub app specific configurations.  
 
 The configuration parameter `pr_commands` defines the list of tools that will be **run automatically** when a new PR is opened.
 ```
@@ -80,7 +80,7 @@ pr_commands = [
 This means that when a new PR is opened/reopened or marked as ready for review, PR-Action will run the `describe`, `review` and `improve` tools.  
 For the `review` tool, for example, the `num_code_suggestions` parameter will be set to 0.
 
-You can override the default tool parameters by using one the three options for a [configuration file](https://khulnasoft.github.io/Docs-PR-Action/usage-guide/#configuration-options): **wiki**, **local**, or **global**. 
+You can override the default tool parameters by using one the three options for a [configuration file](https://pr-action.github.io/Docs-PR-Action/usage-guide/#configuration-options): **wiki**, **local**, or **global**. 
 For example, if your local `.pr_action.toml` file contains:
 ```
 [pr_description]
@@ -93,13 +93,6 @@ To cancel the automatic run of all the tools, set:
 [github_app]
 pr_commands = []
 ```
-
-You can also disable automatic runs for PRs with specific titles, by setting the `ignore_pr_titles` parameter with the relevant regex. For example:
-```
-[github_app]
-ignore_pr_title = ["^[Auto]", ".*ignore.*"]
-```
-will ignore PRs with titles that start with "Auto" or contain the word "ignore".
 
 ### GitHub app automatic tools for push actions (commits to an open PR)
 
@@ -128,15 +121,19 @@ Specifically, start by setting the following environment variables:
         github_action_config.auto_review: "true" # enable\disable auto review
         github_action_config.auto_describe: "true" # enable\disable auto describe
         github_action_config.auto_improve: "true" # enable\disable auto improve
+        github_action_config.pr_actions: ["opened", "reopened", "ready_for_review", "review_requested"]
 ```
 `github_action_config.auto_review`, `github_action_config.auto_describe` and `github_action_config.auto_improve` are used to enable/disable automatic tools that run when a new PR is opened.
 If not set, the default configuration is for all three tools to run automatically when a new PR is opened.
+
+`github_action_config.pr_actions` is used to configure which `pull_requests` events will trigger the enabled auto flags
+If not set, the default configuration is `["opened", "reopened", "ready_for_review", "review_requested"]`
 
 `github_action_config.enable_output` are used to enable/disable github actions [output parameter](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#outputs-for-docker-container-and-javascript-actions) (default is `true`). 
 Review result is output as JSON to `steps.{step-id}.outputs.review` property.
 The JSON structure is equivalent to the yaml data structure defined in [pr_reviewer_prompts.toml](https://github.com/idubnori/pr-action/blob/main/pr_action/settings/pr_reviewer_prompts.toml).
 
-Note that you can give additional config parameters by adding environment variables to `.github/workflows/pr_action.yml`, or by using a `.pr_action.toml` [configuration file](https://pr-action-docs.khulnasoft.com/usage-guide/configuration_options/#global-configuration-file) in the root of your repo
+Note that you can give additional config parameters by adding environment variables to `.github/workflows/pr_action.yml`, or by using a `.pr_action.toml` [configuration file](https://pr-action.khulnasoft.com/usage-guide/configuration_options/#global-configuration-file) in the root of your repo
 
 For example, you can set an environment variable: `pr_description.publish_labels=false`, or add a `.pr_action.toml` file with the following content:
 ```
@@ -171,7 +168,7 @@ push_commands = [
 Note that to use the 'handle_push_trigger' feature, you need to give the gitlab webhook also the "Push events" scope.
 
 ## BitBucket App
-Similar to GitHub app, when running PR-Action from BitBucket App, the default [configuration file](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml) from a pre-built docker will be initially loaded.
+Similar to GitHub app, when running PR-Action from BitBucket App, the default [configuration file](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml) from a pre-built docker will be initially loaded.
 
 By uploading a local `.pr_action.toml` file to the root of the repo's main branch, you can edit and customize any configuration parameter. Note that you need to upload `.pr_action.toml` prior to creating a PR, in order for the configuration to take effect.
 
@@ -182,6 +179,12 @@ inline_code_comments = true
 ```
 
 Each time you invoke a `/review` tool, it will use inline code comments.
+
+
+Note that among other limitations, BitBucket provides relatively low rate-limits for applications (up to 1000 requests per hour), and does not provide an API to track the actual rate-limit usage.
+If you experience lack of responses from PR-Action, you might want to set: `bitbucket_app.avoid_full_files=true` in your configuration file.
+This will prevent PR-Action from acquiring the full file content, and will only use the diff content. This will reduce the number of requests made to BitBucket, at the cost of small decrease in accuracy, as dynamic context will not be applicable.
+
 
 ### BitBucket Self-Hosted App automatic tools
 
@@ -208,7 +211,7 @@ git_provider="azure"
 
 Azure DevOps provider supports [PAT token](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=Windows) or [DefaultAzureCredential](https://learn.microsoft.com/en-us/azure/developer/python/sdk/authentication-overview#authentication-in-server-environments) authentication.
 PAT is faster to create, but has build in expiration date, and will use the user identity for API calls. 
-Using DefaultAzureCredential you can use managed identity or Service principle, which are more secure and will create separate ADO user identity (via AAD) to the agent.
+Using DefaultAzureCredential you can use managed identity or Service principle, which are more secure and will create separate ADO user identity (via AAD) to the action.
 
 If PAT was chosen, you can assign the value in .secrets.toml. 
 If DefaultAzureCredential was chosen, you can assigned the additional env vars like AZURE_CLIENT_SECRET directly, 

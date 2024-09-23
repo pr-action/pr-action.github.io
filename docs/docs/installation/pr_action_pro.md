@@ -2,7 +2,7 @@
 ## Getting Started with PR-Action Pro
 
 PR-Action Pro is a versatile application compatible with GitHub, GitLab, and BitBucket, hosted by KhulnaSoft.
-See [here](https://pr-action-docs.khulnasoft.com/#pr-action-pro) for more details about the benefits of using PR-Action Pro.
+See [here](https://pr-action.khulnasoft.com/#pr-action-pro) for more details about the benefits of using PR-Action Pro.
 
 Interested parties can subscribe to PR-Action Pro through the following [link](https://www.khulnasoft.com/pricing/). 
 After subscribing, you are granted the ability to easily install the application across any of your repositories.

@@ -25,7 +25,7 @@ If you want to edit [configurations](#configuration-options), add the relevant o
 
 ### Automatic triggering
 
-To run the `describe` automatically when a PR is opened, define in a [configuration file](https://pr-action-docs.khulnasoft.com/usage-guide/configuration_options/#wiki-configuration-file):
+To run the `describe` automatically when a PR is opened, define in a [configuration file](https://pr-action.khulnasoft.com/usage-guide/configuration_options/#wiki-configuration-file):
 ```
 [github_app]
 pr_commands = [
@@ -77,7 +77,7 @@ publish_labels = ...
   </tr>
   <tr>
     <td><b>final_update_message</b></td>
-    <td>If set to true, it will add a comment message [`PR Description updated to latest commit...`](https://github.com/KhulnaSoft/pr-action/pull/499#issuecomment-1837412176) after finishing calling `/describe`. Default is false.</td>
+    <td>If set to true, it will add a comment message [`PR Description updated to latest commit...`](https://github.com/Pr-action/pr-action/pull/499#issuecomment-1837412176) after finishing calling `/describe`. Default is false.</td>
   </tr>
   <tr>
     <td><b>enable_semantic_files_types</b></td>
@@ -157,7 +157,7 @@ The marker `pr_action:type` will be replaced with the PR type, `pr_action:summar
 The default labels of the describe tool are quite generic, since they are meant to be used in any repo: [`Bug fix`, `Tests`, `Enhancement`, `Documentation`, `Other`].
 
 You can define custom labels that are relevant for your repo and use cases.
-Custom labels can be defined in a [configuration file](https://pr-action-docs.khulnasoft.com/tools/custom_labels/#configuration-options), or directly in the repo's [labels page](#handle-custom-labels-from-the-repos-labels-page).
+Custom labels can be defined in a [configuration file](https://pr-action.khulnasoft.com/tools/custom_labels/#configuration-options), or directly in the repo's [labels page](#handle-custom-labels-from-the-repos-labels-page).
 
 Make sure to provide proper title, and a detailed and well-phrased description for each label, so the tool will know when to suggest it.
 Each label description should be a **conditional statement**, that indicates if to add the label to the PR or not, according to the PR content.

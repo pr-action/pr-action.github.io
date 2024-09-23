@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: PR Action action step
         id: praction
-        uses: KhulnaSoft/pr-action@main
+        uses: Pr-action/pr-action@main
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,7 +60,7 @@ The GITHUB_TOKEN secret is automatically created by GitHub.
 3) Merge this change to your main branch.
 When you open your next PR, you should see a comment from `github-actions` bot with a review of your PR, and instructions on how to use the rest of the tools.
 
-4) You may configure PR-Action by adding environment variables under the env section corresponding to any configurable property in the [configuration](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml) file. Some examples:
+4) You may configure PR-Action by adding environment variables under the env section corresponding to any configurable property in the [configuration](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml) file. Some examples:
 ```yaml
       env:
         # ... previous environment values
@@ -68,7 +68,7 @@ When you open your next PR, you should see a comment from `github-actions` bot w
         PR_REVIEWER.REQUIRE_TESTS_REVIEW: "false" # Disable tests review
         PR_CODE_SUGGESTIONS.NUM_CODE_SUGGESTIONS: 6 # Increase number of code suggestions
 ```
-See detailed usage instructions in the [USAGE GUIDE](https://pr-action-docs.khulnasoft.com/usage-guide/automations_and_usage/#github-action)
+See detailed usage instructions in the [USAGE GUIDE](https://pr-action.khulnasoft.com/usage-guide/automations_and_usage/#github-action)
 
 ---
 
@@ -101,7 +101,7 @@ WEBHOOK_SECRET=$(python -c "import secrets; print(secrets.token_hex(10))")
 4) Clone this repository:
 
 ```
-git clone https://github.com/KhulnaSoft/pr-action.git
+git clone https://github.com/Pr-action/pr-action.git
 ```
 
 5) Copy the secrets template file and fill in the following:
@@ -115,7 +115,7 @@ cp pr_action/settings/.secrets_template.toml pr_action/settings/.secrets.toml
    - Copy your app's private key to the private_key field.
    - Copy your app's ID to the app_id field.
    - Copy your app's webhook secret to the webhook_secret field.
-   - Set deployment_type to 'app' in [configuration.toml](https://github.com/KhulnaSoft/pr-action/blob/main/pr_action/settings/configuration.toml)
+   - Set deployment_type to 'app' in [configuration.toml](https://github.com/Pr-action/pr-action/blob/main/pr_action/settings/configuration.toml)
 
     > The .secrets.toml file is not copied to the Docker image by default, and is only used for local development.
     > If you want to use the .secrets.toml file in your Docker image, you can add remove it from the .dockerignore file.
@@ -177,7 +177,7 @@ For example: `GITHUB.WEBHOOK_SECRET` --> `GITHUB__WEBHOOK_SECRET`
     ```
 4. Create a lambda function that uses the uploaded image. Set the lambda timeout to be at least 3m.
 5. Configure the lambda function to have a Function URL.
-6. In the environment variables of the Lambda function, specify `AZURE_DEVOPS_CACHE_DIR` to a writable location such as /tmp. (see [link](https://github.com/KhulnaSoft/pr-action/pull/450#issuecomment-1840242269))
+6. In the environment variables of the Lambda function, specify `AZURE_DEVOPS_CACHE_DIR` to a writable location such as /tmp. (see [link](https://github.com/Pr-action/pr-action/pull/450#issuecomment-1840242269))
 7. Go back to steps 8-9 of [Method 5](#run-as-a-github-app) with the function url as your Webhook URL.
     The Webhook URL would look like `https://<LAMBDA_FUNCTION_URL>/api/v1/github_webhooks`
 

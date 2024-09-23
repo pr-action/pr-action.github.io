@@ -1,1 +1,1 @@
-# [Visit Our Docs Portal](https://pr-action-docs.khulnasoft.com/)
+# [Visit Our Docs Portal](https://pr-action.khulnasoft.com/)

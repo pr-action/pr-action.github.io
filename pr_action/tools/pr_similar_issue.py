@@ -30,7 +30,7 @@ class PRSimilarIssue:
         self.token_handler = TokenHandler()
         repo_obj = self.git_provider.repo_obj
         repo_name_for_index = self.repo_name_for_index = repo_obj.full_name.lower().replace('/', '-').replace('_/', '-')
-        index_name = self.index_name = "khulnasoft-pr-action-issues"
+        index_name = self.index_name = "pr-action-pr-action-issues"
 
         if get_settings().pr_similar_issue.vectordb == "pinecone":
             try:
