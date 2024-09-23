@@ -5,7 +5,7 @@ import tempfile
 import copy
 from functools import partial
 
-from jinja2 import Environment, StrictUndefined
+from jinja2 import Environment, StrictUndefined, select_autoescape
 
 from pr_action.algo.ai_handlers.base_ai_handler import BaseAiHandler
 from pr_action.algo.ai_handlers.litellm_ai_handler import LiteLLMAIHandler
@@ -36,6 +36,7 @@ class PRHelpMessage:
         self.git_provider = get_git_provider_with_context(pr_url)
         self.ai_handler = ai_handler()
         self.question_str = self.parse_args(args)
+        self.num_retrieved_snippets = get_settings().get('pr_help.num_retrieved_snippets', 5)
         if self.question_str:
             self.vars = {
                 "question": self.question_str,
@@ -49,7 +50,7 @@ class PRHelpMessage:
     async def _prepare_prediction(self, model: str):
         try:
             variables = copy.deepcopy(self.vars)
-            environment = Environment(undefined=StrictUndefined)
+            environment = Environment(undefined=StrictUndefined, autoescape=select_autoescape(['html', 'xml']))
             system_prompt = environment.from_string(get_settings().pr_help_prompts.system).render(variables)
             user_prompt = environment.from_string(get_settings().pr_help_prompts.user).render(variables)
             response, finish_reason = await self.ai_handler.chat_completion(
@@ -71,18 +72,19 @@ class PRHelpMessage:
         sim_results = []
         try:
             from langchain_chroma import Chroma
-            import boto3
+            from urllib import request
             with tempfile.TemporaryDirectory() as temp_dir:
                 # Define the local file path within the temporary directory
                 local_file_path = os.path.join(temp_dir, 'chroma_db.zip')
 
-                # Initialize the S3 client
-                s3 = boto3.client('s3')
-
-                # Download the file from S3 to the temporary directory
                 bucket = 'pr-action'
                 file_name = 'chroma_db.zip'
-                s3.download_file(bucket, file_name, local_file_path)
+                s3_url = f'https://{bucket}.s3.amazonaws.com/{file_name}'
+                request.urlretrieve(s3_url, local_file_path)
+
+                # # Download the file from S3 to the temporary directory
+                # s3 = boto3.client('s3')
+                # s3.download_file(bucket, file_name, local_file_path)
 
                 # Extract the contents of the zip file
                 with zipfile.ZipFile(local_file_path, 'r') as zip_ref:
@@ -90,7 +92,7 @@ class PRHelpMessage:
 
                 vectorstore = Chroma(persist_directory=temp_dir + "/chroma_db",
                                      embedding_function=embeddings)
-                sim_results = vectorstore.similarity_search_with_score(self.question_str, k=4)
+                sim_results = vectorstore.similarity_search_with_score(self.question_str, k=self.num_retrieved_snippets)
         except Exception as e:
             get_logger().error(f"Error while getting sim from S3: {e}",
                                artifact={"traceback": traceback.format_exc()})
@@ -102,8 +104,13 @@ class PRHelpMessage:
         try:
             from langchain_chroma import Chroma
             get_logger().info("Loading the Chroma index...")
+            db_path = "./docs/chroma_db.zip"
+            if not os.path.exists(db_path):
+                db_path= "/app/docs/chroma_db.zip"
+                if not os.path.exists(db_path):
+                    get_logger().error("Local db not found")
+                    return sim_results
             with tempfile.TemporaryDirectory() as temp_dir:
-                db_path = "./docs/chroma_db.zip"
 
                 # Extract the ZIP file
                 with zipfile.ZipFile(db_path, 'r') as zip_ref:
@@ -113,7 +120,7 @@ class PRHelpMessage:
                                      embedding_function=embeddings)
 
                 # Do similarity search
-                sim_results = vectorstore.similarity_search_with_score(self.question_str, k=4)
+                sim_results = vectorstore.similarity_search_with_score(self.question_str, k=self.num_retrieved_snippets)
         except Exception as e:
             get_logger().error(f"Error while getting sim from local db: {e}",
                                artifact={"traceback": traceback.format_exc()})
@@ -131,7 +138,7 @@ class PRHelpMessage:
             )
 
             # Do similarity search
-            sim_results = vectorstore.similarity_search_with_score(self.question_str, k=4)
+            sim_results = vectorstore.similarity_search_with_score(self.question_str, k=self.num_retrieved_snippets)
         except Exception as e:
             get_logger().error(f"Error while getting sim from Pinecone db: {e}",
                                artifact={"traceback": traceback.format_exc()})
@@ -142,29 +149,32 @@ class PRHelpMessage:
             if self.question_str:
                 get_logger().info(f'Answering a PR question about the PR {self.git_provider.pr_url} ')
 
-                if not get_settings().openai.key:
+                if not get_settings().get('openai.key'):
                     if get_settings().config.publish_output:
                         self.git_provider.publish_comment(
-                            "The `Help` tool chat requires an OpenAI API key, which is not configured.")
+                            "The `Help` tool chat feature requires an OpenAI API key for calculating embeddings")
                     else:
-                        get_logger().error("The `Help` tool chat requires an OpenAI API key, which is not configured.")
+                        get_logger().error("The `Help` tool chat feature requires an OpenAI API key for calculating embeddings")
                     return
 
                 # Initialize embeddings
                 from langchain_openai import OpenAIEmbeddings
-                embeddings = OpenAIEmbeddings(model="text-embedding-ada-002",
+                embeddings = OpenAIEmbeddings(model="text-embedding-3-small",
                                               api_key=get_settings().openai.key)
 
                 # Get similar snippets via similarity search
                 if get_settings().pr_help.force_local_db:
                     sim_results = self.get_sim_results_from_local_db(embeddings)
-                elif get_settings().pinecone.api_key:
+                elif get_settings().get('pinecone.api_key'):
                     sim_results = self.get_sim_results_from_pinecone_db(embeddings)
                 else:
                     sim_results = self.get_sim_results_from_s3_db(embeddings)
                     if not sim_results:
                         get_logger().info("Failed to load the S3 index. Loading the local index...")
                         sim_results = self.get_sim_results_from_local_db(embeddings)
+                if not sim_results:
+                    get_logger().error("Failed to retrieve similar snippets. Exiting...")
+                    return
 
                 # Prepare relevant snippets
                 relevant_pages_full, relevant_snippets_full_header, relevant_snippets_str =\
@@ -176,6 +186,15 @@ class PRHelpMessage:
                 response_yaml = load_yaml(response)
                 response_str = response_yaml.get('response')
                 relevant_snippets_numbers = response_yaml.get('relevant_snippets')
+
+                if not relevant_snippets_numbers:
+                    get_logger().info(f"Could not find relevant snippets for the question: {self.question_str}")
+                    if get_settings().config.publish_output:
+                        answer_str = f"### Question: \n{self.question_str}\n\n"
+                        answer_str += f"### Answer:\n\n"
+                        answer_str += f"Could not find relevant information to answer the question. Please provide more details and try again."
+                        self.git_provider.publish_comment(answer_str)
+                    return ""
 
                 # prepare the answer
                 answer_str = ""
@@ -198,7 +217,7 @@ class PRHelpMessage:
                 if get_settings().config.publish_output:
                     self.git_provider.publish_comment(answer_str)
                 else:
-                    get_logger().info(f"Answer: {response}")
+                    get_logger().info(f"Answer:\n{answer_str}")
             else:
                 if not isinstance(self.git_provider, BitbucketServerProvider) and not self.git_provider.is_supported("gfm_markdown"):
                     self.git_provider.publish_comment(
@@ -302,8 +321,6 @@ class PRHelpMessage:
 
     async def prepare_relevant_snippets(self, sim_results):
         # Get relevant snippets
-        relevant_pages = []
-        relevant_snippets = []
         relevant_snippets_full = []
         relevant_pages_full = []
         relevant_snippets_full_header = []
@@ -315,17 +332,10 @@ class PRHelpMessage:
             relevant_snippets_full.append(content)
             relevant_snippets_full_header.append(extract_header(content))
             relevant_pages_full.append(page)
-            if not relevant_pages:
-                relevant_pages.append(page)
-                relevant_snippets.append(content)
-            elif score > th:
-                if page not in relevant_pages:
-                    relevant_pages.append(page)
-                    relevant_snippets.append(content)
         # build the snippets string
         relevant_snippets_str = ""
         for i, s in enumerate(relevant_snippets_full):
-            relevant_snippets_str += f"Snippet {i}:\n\n{s}\n\n"
+            relevant_snippets_str += f"Snippet {i+1}:\n\n{s}\n\n"
             relevant_snippets_str += "-------------------\n\n"
         return relevant_pages_full, relevant_snippets_full_header, relevant_snippets_str
 
