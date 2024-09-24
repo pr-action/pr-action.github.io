@@ -54,7 +54,7 @@ Here are the results:
 ### Training dataset
 
 Our training dataset comprises 25,000 pull requests, aggregated from permissive license repos. For each pull request, we generated responses for the three main tools of PR-Action:
-[Describe](https://pr-action.khulnasoft.com/tools/describe/), [Review](https://pr-action.khulnasoft.com/tools/improve/) and [Improve](https://pr-action.khulnasoft.com/tools/improve/).
+[Describe](https://pr-action.github.io/tools/describe/), [Review](https://pr-action.github.io/tools/improve/) and [Improve](https://pr-action.github.io/tools/improve/).
 
 On the raw data collected, we employed various automatic and manual cleaning techniques to ensure the outputs were of the highest quality, and suitable for instruct-tuning.
 

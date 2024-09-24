@@ -2,7 +2,7 @@
 ## Getting Started with PR-Action Pro
 
 PR-Action Pro is a versatile application compatible with GitHub, GitLab, and BitBucket, hosted by KhulnaSoft.
-See [here](https://pr-action.khulnasoft.com/#pr-action-pro) for more details about the benefits of using PR-Action Pro.
+See [here](https://pr-action.github.io/#pr-action-pro) for more details about the benefits of using PR-Action Pro.
 
 Interested parties can subscribe to PR-Action Pro through the following [link](https://www.khulnasoft.com/pricing/). 
 After subscribing, you are granted the ability to easily install the application across any of your repositories.
@@ -37,7 +37,7 @@ Store the token in a safe place, you won’t be able to access it again after it
 
 ### Step 2
 
-Generate a shared secret and link it to the access token. Browse to [https://register.gitlab.pr-action.khulnasoft.com](https://register.gitlab.pr-action.khulnasoft.com).
+Generate a shared secret and link it to the access token. Browse to [https://register.gitlab.pr-action.github.io](https://register.gitlab.pr-action.github.io).
 Fill in your generated GitLab token and your company or personal name in the appropriate fields and click "Submit".
 
 You should see "Success!" displayed above the Submit button, and a shared secret will be generated. Store it in a safe place, you won’t be able to access it again after it was generated.
@@ -51,7 +51,7 @@ Install a webhook for your repository or groups, by clicking “webhooks” on t
 </figure>
 
 In the webhook definition form, fill in the following fields:
-URL: https://pro.gitlab.pr-action.khulnasoft.com/webhook
+URL: https://pro.gitlab.pr-action.github.io/webhook
 
 Secret token: Your KhulnaSoft key
 Trigger: Check the ‘comments’ and ‘merge request events’ boxes.

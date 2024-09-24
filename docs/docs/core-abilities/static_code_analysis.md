@@ -13,7 +13,7 @@ It scans the PR code changes, finds all the code components (methods, functions,
 ### Analyze PR
 
 
-The [`analyze`](https://pr-action.khulnasoft.com/tools/analyze/) tool enables to interactively generate tests, docs, code suggestions and similar code search for each component that changed in the PR.
+The [`analyze`](https://pr-action.github.io/tools/analyze/) tool enables to interactively generate tests, docs, code suggestions and similar code search for each component that changed in the PR.
 It can be invoked manually by commenting on any PR:
 ```
 /analyze
@@ -27,7 +27,7 @@ Clicking on each checkbox will trigger the relevant tool for the selected compon
 
 ### Generate Tests
 
-The [`test`](https://pr-action.khulnasoft.com/tools/test/) tool  generate tests for a selected component, based on the PR code changes.
+The [`test`](https://pr-action.github.io/tools/test/) tool  generate tests for a selected component, based on the PR code changes.
 It can be invoked manually by commenting on any PR:
 ```
 /test component_name
@@ -38,7 +38,7 @@ where 'component_name' is the name of a specific component in the PR,  Or be tri
 
 ### Generate Docs for a Component
 
-The [`add_docs`](https://pr-action.khulnasoft.com/tools/documentation/) tool scans the PR code changes, and automatically generate docstrings for any code components that changed in the PR.
+The [`add_docs`](https://pr-action.github.io/tools/documentation/) tool scans the PR code changes, and automatically generate docstrings for any code components that changed in the PR.
 It can be invoked manually by commenting on any PR:
 ```
 /add_docs component_name
@@ -49,7 +49,7 @@ Or be triggered interactively by using the `analyze` tool.
 ![Docs single component](https://khulnasoft.com/images/pr_action/docs_single_component.png){width=768}
 
 ### Generate Code Suggestions for a Component
-The [`improve_component`](https://pr-action.khulnasoft.com/tools/improve_component/) tool generates code suggestions for a specific code component that changed in the PR.
+The [`improve_component`](https://pr-action.github.io/tools/improve_component/) tool generates code suggestions for a specific code component that changed in the PR.
 It can be invoked manually by commenting on any PR:
 ```
 /improve_component component_name
@@ -61,7 +61,7 @@ Or be triggered interactively by using the `analyze` tool.
 
 ### Find Similar Code
 
-The [`similar code`](https://pr-action.khulnasoft.com/tools/similar_code/) tool retrieves the most similar code components from inside the organization's codebase, or from open-source code.
+The [`similar code`](https://pr-action.github.io/tools/similar_code/) tool retrieves the most similar code components from inside the organization's codebase, or from open-source code.
 
 For example:
 

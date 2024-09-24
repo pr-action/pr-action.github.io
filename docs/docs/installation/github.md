@@ -68,7 +68,7 @@ When you open your next PR, you should see a comment from `github-actions` bot w
         PR_REVIEWER.REQUIRE_TESTS_REVIEW: "false" # Disable tests review
         PR_CODE_SUGGESTIONS.NUM_CODE_SUGGESTIONS: 6 # Increase number of code suggestions
 ```
-See detailed usage instructions in the [USAGE GUIDE](https://pr-action.khulnasoft.com/usage-guide/automations_and_usage/#github-action)
+See detailed usage instructions in the [USAGE GUIDE](https://pr-action.github.io/usage-guide/automations_and_usage/#github-action)
 
 ---
 

@@ -36,7 +36,7 @@ Also note that collapsible are not supported in _Bitbucket_. Hence, the suggesti
 
 ### Automatic triggering
 
-To run the `improve` automatically when a PR is opened, define in a [configuration file](https://pr-action.khulnasoft.com/usage-guide/configuration_options/#wiki-configuration-file):
+To run the `improve` automatically when a PR is opened, define in a [configuration file](https://pr-action.github.io/usage-guide/configuration_options/#wiki-configuration-file):
 ```
 [github_app]
 pr_commands = [
@@ -163,7 +163,7 @@ If you want to enable also a global `best_practices.md` wiki file, set first in 
 enable_global_best_practices = true
 ```
 
-Then, create a `best_practices.md` wiki file in the root of [global](https://pr-action.khulnasoft.com/usage-guide/configuration_options/#global-configuration-file) configuration repository,  `pr-action-settings`.
+Then, create a `best_practices.md` wiki file in the root of [global](https://pr-action.github.io/usage-guide/configuration_options/#global-configuration-file) configuration repository,  `pr-action-settings`.
 
 ##### Example results
 
@@ -240,11 +240,11 @@ Using a combination of both can help the AI model to provide relevant and tailor
 ## A note on code suggestions quality
 
 - AI models for code are getting better and better (Sonnet-3.5 and GPT-4), but they are not flawless. Not all the suggestions will be perfect, and a user should not accept all of them automatically. Critical reading and judgment are required.
-- While mistakes of the AI are rare but can happen, a real benefit from the suggestions of the `improve` (and [`review`](https://pr-action.khulnasoft.com/tools/review/)) tool is to catch, with high probability, **mistakes or bugs done by the PR author**, when they happen. So, it's a good practice to spend the needed ~30-60 seconds to review the suggestions, even if not all of them are always relevant.
+- While mistakes of the AI are rare but can happen, a real benefit from the suggestions of the `improve` (and [`review`](https://pr-action.github.io/tools/review/)) tool is to catch, with high probability, **mistakes or bugs done by the PR author**, when they happen. So, it's a good practice to spend the needed ~30-60 seconds to review the suggestions, even if not all of them are always relevant.
 - The hierarchical structure of the suggestions is designed to help the user to _quickly_ understand them, and to decide which ones are relevant and which are not:
 
     - Only if the `Category` header is relevant, the user should move to the summarized suggestion description
     - Only if the summarized suggestion description is relevant, the user should click on the collapsible, to read the full suggestion description with a code preview example.
 
-- In addition, we recommend to use the [`extra_instructions`](https://pr-action.khulnasoft.com/tools/improve/#extra-instructions-and-best-practices) field to guide the model to suggestions that are more relevant to the specific needs of the project. 
-- The interactive [PR chat](https://pr-action.khulnasoft.com/chrome-extension/) also provides an easy way to get more tailored suggestions and feedback from the AI model.
+- In addition, we recommend to use the [`extra_instructions`](https://pr-action.github.io/tools/improve/#extra-instructions-and-best-practices) field to guide the model to suggestions that are more relevant to the specific needs of the project. 
+- The interactive [PR chat](https://pr-action.github.io/chrome-extension/) also provides an easy way to get more tailored suggestions and feedback from the AI model.

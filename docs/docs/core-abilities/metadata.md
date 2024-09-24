@@ -9,10 +9,10 @@ PR-Action initially retrieves for each PR the following data:
 - The entire content of the files that were modified in the PR
 
 !!! tip "Tip: Organization-level metadata"
-    In addition to the inputs above, PR-Action can incorporate supplementary preferences provided by the user, like [`extra_instructions` and `organization best practices`](https://pr-action.khulnasoft.com/tools/improve/#extra-instructions-and-best-practices). This information can be used to enhance the PR analysis.
+    In addition to the inputs above, PR-Action can incorporate supplementary preferences provided by the user, like [`extra_instructions` and `organization best practices`](https://pr-action.github.io/tools/improve/#extra-instructions-and-best-practices). This information can be used to enhance the PR analysis.
 
 (2)
-By default, the first command that PR-Action executes is [`describe`](https://pr-action.khulnasoft.com/tools/describe/), which generates three types of outputs:
+By default, the first command that PR-Action executes is [`describe`](https://pr-action.github.io/tools/describe/), which generates three types of outputs:
 
 - PR Type (e.g. bug fix, feature, refactor, etc)
 - PR Description - a bullet points summary of the PR
@@ -49,7 +49,7 @@ __old hunk__
 ...
 ```
 
-(3) The entire PR files that where retrieved are also used to expand and enhance the PR context (see [Dynamic Context](https://pr-action.khulnasoft.com/core-abilities/dynamic-context/)).
+(3) The entire PR files that where retrieved are also used to expand and enhance the PR context (see [Dynamic Context](https://pr-action.github.io/core-abilities/dynamic-context/)).
 
 
 (4) All the metadata described above represents several level of cumulative analysis - ranging from hunk level, to file level, to PR level, to organization level.
